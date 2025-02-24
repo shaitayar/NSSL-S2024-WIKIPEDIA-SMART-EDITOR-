@@ -1,0 +1,110 @@
+{
+    "operation": {
+      "is_measurement": false,
+      "is_general_population": false,
+      "is_expansions": true
+    },
+
+    "neo4j": {
+        "measurements": {
+            "uri": "bolt://localhost:7687",
+            "username": "measurements",
+            "password": "12345678"
+        },
+        "general_population": {
+            "uri": "bolt://localhost:7687",
+            "username": "generalPopulation",
+            "password": "12345678"
+        },
+        "project": {
+            "uri": "bolt://localhost:7687",
+            "username": "project",
+            "password": "12345678"
+        }
+    },
+    "duration": {
+        "month_start": 6,
+        "months_end": 7,
+        "days_for_recent_changes": 4
+    },
+
+    "logging": {
+        "filename": "app.log",
+        "filemode": "a",
+        "level": "INFO"
+    },
+    "max_iterations": {
+        "contribs": 10,
+        "reverts": 10
+    },
+    "kernel": {
+        "users": [
+             {"user": "CarmenEsparzaAmoux"},
+             {"user": "Makeandtoss"},
+             {"user": "Nableezy"},
+             {"user": "Selfstudier"},
+             {"user": "Dimadick"},
+             {"user": "Surtsicna"},
+             {"user": "Nishidani"},
+             {"user": "Huldra"},
+             {"user": "Pincrete"},
+             {"user": "Onceinawhile"},
+             {"user": "Iskandar323"},
+             {"user": "Zero0000"},
+             {"user": "Tobby72"},
+             {"user": "XTheBedrockX"},
+             {"user": "Trilletrollet"},
+             {"user": "Mhhossein"},
+             {"user": "Supreme Deliciousness"},
+             {"user": "Objective3000"},
+             {"user": "Kire1975"},
+             {"user": "TarnishedPath"},
+             {"user": "Irtapil"},
+             {"user": "Salmoonlight"},
+             {"user": "Skitash"},
+             {"user": "TheDoodbly"},
+             {"user": "PriusGod"},
+             {"user": "IOHANNVSVERVS"},
+             {"user": "JDiala"},
+             {"user": "DMH223344"},
+             {"user": "LINFAN01"},
+             {"user": "Theleekycauldron"},
+             {"user": "Willowcity"},
+             {"user": "CarmenEsparzaAmoux"},
+             {"user": "Vice regent"}],
+        "pages": []
+    },
+    "userboxes": {
+        "pro_israel": ["supports israel", "zionist", "israel to exist freely", "stands with israel", "jewish", "hebrew",
+            "comes from israel"] ,
+        "pro_palestine": ["palestinian right of return", "independence of palestine", "wikiproject palestine", "wikiproject islam",
+            "supports palestine", "gaza genocide", "genocide", "independence of palestine", "palestinians to join the eu",
+            "bds", "apartheid", "from the river to the sea", "palestinian right of return", "resist military aggression",
+            "occupation", "palestinian refugees", "free palestine", "independence palestine", "palestinian refugees",
+            "israeli aggression", "armed resistance", "violently resist"]
+    },
+    "wikiProject": {
+        "palestine": [
+          "48JCL", "AFriedman", "Abedwayyad", "Abo Yemen", "Abu ali", "Achamy", "Afterthedisaster", "Aidanyoung1406",
+          "Alpha Monarch", "Aminz", "Amity1844", "Andrensath", "Apjohns54", "Appleville", "Arhan2212", "Ashley kennedy3",
+          "Aspie93", "Biraqleet", "Bless_sins", "BlockCrew", "Bolter21", "BrandonYusufToropov", "Carolmooredc", "Chongkian",
+          "Clausvonb", "Colourinthemeaning", "Dawud Hebroni", "Dead time freedom", "Delad", "DingDongPingPong", "Est. 2021", "Ezlev",
+          "F aisal", "Falastine fee Qalby", "FalastinyMusings", "Federalist51", "Finton the magical salmon", "Fjmustak", "Al Ameer son", "Buaidh",
+          "Frederico1234", "Fuchsia the Sun", "G-Dett", "GHcool", "Gahgeer", "GiggsHammouri", "Healforgood", "Hellosami",
+          "Hood Ahmed", "HowardMorland", "IRISZOOM", "Ian Pitchford", "ImTheIP", "Imad marie", "Imteghren", "IronManCap",
+          "Irtapil", "Iskandar323", "Ismee", "JMWt", "Jackie.salzinger", "John0101ddd", "Joseph E. Saad", "Jrtayloriv",
+          "Kessale", "Kingsindian", "Kinsio", "Kjmartin815", "Klyveren103", "Kmac1986", "Labbas8", "Lama",
+          "Leitz", "Lihaas", "Lionel Messi Lover", "LunaEclipse", "MWQs", "Macarius Ibne Mito", "Madhero88", "Majdal.cc",
+          "Malik Shabazz", "Marbhna", "MarcMyWords", "MartinCollin", "Mason7512", "Masssly", "Mjocc", "Mr.Karhi",
+          "Mtnassar1975", "Nayefc", "Night w", "Okinawa55", "Osps7", "PIDFweb", "Padres Hana", "Palestinian cities\nasad112",
+          "Parauleira", "PatGallacher", "Pedrito", "Postmethod", "PresidentCoriolanus", "Professor Penguino", "RAGentry", "Ras al Ghoul",
+          "Rastko Pocesta", "Rickyrab", "RolandR", "Salice855", "Sanguinalis", "Scheharazade", "Shushugah", "Skadowski",
+          "Smallangryplanet", "Suii Guy", "Supercarpenter", "The MK", "Tiamut", "Timeshifter", "Tirpse77", "TrickyH",
+          "Trilletrollet", "Troffieny", "Uishaki", "Vif12vf", "ViolanteMD", "Vladrivlin", "Waterlover3", "Western.galilee",
+          "Whaledad", "DieWeisseRose", "Wiki_Khalil", "Wodge", "Yahel Guhan", "Yamanam", "Yara Pal", "Yishai Statter",
+          "Zakouma", "apathyash", "arbnmp", "batoul84", "JaapBoBo", "Isamishaq", "toadstooljuice", "יורם שורק",
+          "عماد_الدين_المقدسي", "Engelo"],
+        "israel": []
+    }
+
+}
