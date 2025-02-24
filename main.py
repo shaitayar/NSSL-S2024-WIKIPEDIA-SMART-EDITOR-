@@ -45,8 +45,9 @@ if __name__ == '__main__':
     palestine_userbox = config['userboxes']['pro_palestine']
     israel_userbox = config['userboxes']['pro_israel']
 
-    data_from_db = config['data']['is_from_db']
-    data_from_csv = config['data']['is_from_csv']
+    general_population_data = config['data']['is_from_db']
+    expanding_data = config['data']['is_from_json']
+
 
 
     if (is_measurement):
@@ -73,28 +74,32 @@ if __name__ == '__main__':
         classify = classify.Classify(driver, project_palestine_users, palestine_userbox, israel_userbox)
         contribution = contributions.Contributions(driver, max_iterations_contribs, kernel_users, kernel_pages, months_start, months_end, classify)
         revert = reverts.RevertsEC(driver, max_iterations_reverts, kernel_users, kernel_pages, months_start, months_end, classify)
+        #Todo: add grades and cutoff
+        #Todo: print data to json
 
     if (is_graphs):
         # draw jupyter graphs
-        contributions_data = []
-        reverts_data = []
-        ec_reverts_data = []
-        ec_tag_data = []
+        contributions_data = general.Data()
+        reverts_data = general.Data()
+        ec_reverts_data = general.Data()
+        ec_tag_data = general.TimeData()
 
-        if (data_from_db):
-            config_neo = config['neo4j']['project']
-            driver = connect_to_neo4j(config_neo['uri'], config_neo['username'], config_neo['password'])
+        with open(f"{expanding_data}.json", "r") as f:
+            data = json.load(f)
+        contributions_data.insert(data['contributions'])
+        reverts_data.insert(data['reverts'])
+        ec_reverts_data.insert(data['ec_reverts'])
+        ec_tag_data.insert(data['ec_tag'])
 
-        if(data_from_csv):
-            with open("data.csv", "r") as f:
-                data = json.load(f)
-            contributions_data = data['contributions']
-            reverts_data = data['reverts']
-            ec_reverts_data = data['ec_reverts']
-            ec_tag_data = data['ec_tag']
+        with open(f"{general_population_data}.json", "r") as g:
+            general = json.load(g)
+
+        pro_palestine_data = general['pro_palestine_data']
+        pro_israel_data = general['pro_israel_data']
+        neutral_data = general['neutral_data']
 
 
-        graph = graphs.Graphs(contributions_data, reverts_data, ec_reverts_data, ec_tag_data, driver)
+        graph = graphs.Graphs(pro_israel_data, pro_palestine_data, neutral_data, contributions_data, reverts_data, ec_reverts_data, ec_tag_data)
 
         #general population
         if(graph_general_population_hour or graph_general_population_15min or graph_general_population_ec_tag):
@@ -123,5 +128,8 @@ if __name__ == '__main__':
 
     #extract data to output file
     #add jpyter graphs V
-    #amoeba
+    #amoeba X
+    #add expansions with cutoff
+    #add final user list
+
 

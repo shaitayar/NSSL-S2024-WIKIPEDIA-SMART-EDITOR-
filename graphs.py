@@ -3,22 +3,22 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-class Data:
+class Stats:
     pro_israel_mean = 0
     pro_israel_variance = 0
     pro_palestine_mean = 0
     pro_palestine_variance = 0
 
 class Graphs():
-    def __init__(self, contributions, reverts, ec_reverts, ec_tag, driver = None):
-        self.driver = driver
-        self.pro_israel_data = []
-        self.pro_palestine_data = []
-        self.neutral_data = []
-        self.total_data = []
+    def __init__(self, pro_israel_data, pro_palestine_data, neutral_data, ec_tag_general_population, contributions, reverts, ec_reverts, ec_tag):
+        self.pro_israel_data = pro_israel_data
+        self.pro_palestine_data = pro_palestine_data
+        self.neutral_data = neutral_data
+        self.ec_tag_general_population = ec_tag_general_population
+        self.total_data = pro_israel_data + pro_palestine_data + neutral_data
         self.total_users_all_day = []
 
-        self.data = Data()
+        self.data = Stats()
 
         self.contributions = contributions
         self.reverts = reverts
@@ -55,7 +55,6 @@ class Graphs():
                         neutral_15min[time] += 1
                         neutral_count += 1
 
-        return pro_israel_15min, pro_palestine_15min, neutral_15min
 
     def get_hourly_averages(self, data):
         hourly_averages = []
@@ -65,13 +64,12 @@ class Graphs():
         return hourly_averages
 
     def general_population_graph_hourly(self):
-        pro_israel_15min, pro_palestine_15min, neutral_15min = self.general_population_graph_data()
 
         time_intervals = [f"{h:02}:{m:02}" for h in range(24) for m in range(0, 60, 15)]
 
-        self.pro_israel_data = pd.Series(pro_israel_15min).reindex(time_intervals, fill_value=0)
-        self.pro_palestine_data = pd.Series(pro_palestine_15min).reindex(time_intervals, fill_value=0)
-        self.neutral_data = pd.Series(neutral_15min).reindex(time_intervals, fill_value=0)
+        self.pro_israel_data = pd.Series(self.pro_israel_15min).reindex(time_intervals, fill_value=0)
+        self.pro_palestine_data = pd.Series(self.pro_palestine_15min).reindex(time_intervals, fill_value=0)
+        self.neutral_data = pd.Series(self.neutral_15min).reindex(time_intervals, fill_value=0)
         self.total_data = self.pro_israel_data + self.pro_palestine_data + self.neutral_data
 
         pro_israel_hourly = self.get_hourly_averages(self.pro_israel_data)
@@ -101,11 +99,10 @@ class Graphs():
 
     def general_population_graph_15min(self):
         time_intervals = [f"{h:02}:{m:02}" for h in range(24) for m in range(0, 60, 15)]
-        pro_israel_15min, pro_palestine_15min, neutral_15min = self.general_population_graph_data()
 
-        pro_israel_data = pd.Series(pro_israel_15min).reindex(time_intervals, fill_value=0)
-        pro_palestine_data = pd.Series(pro_palestine_15min).reindex(time_intervals, fill_value=0)
-        neutral_data = pd.Series(neutral_15min).reindex(time_intervals, fill_value=0)
+        pro_israel_data = pd.Series(self.pro_israel_15min).reindex(time_intervals, fill_value=0)
+        pro_palestine_data = pd.Series(self.pro_palestine_15min).reindex(time_intervals, fill_value=0)
+        neutral_data = pd.Series(self.neutral_15min).reindex(time_intervals, fill_value=0)
         total_data = pro_israel_data + pro_palestine_data + neutral_data
         total_users_all_day = total_data.sum()
 
@@ -169,9 +166,8 @@ class Graphs():
         plt.show()
 
     def calc_and_plot_reverts(self):
-        data_reverts = self.reverts
 
-        df = pd.DataFrame(data_reverts)
+        df = pd.DataFrame(self.reverts)
 
         df['Palestinian Ratio'] = df['Palestinians'] / df['Total Users']
         df['Israeli Ratio'] = df['Israelis'] / df['Total Users']
@@ -200,9 +196,8 @@ class Graphs():
         #for i, row in df.iterrows():
         #    print(f"Iteration: {row['Iteration']} - Palestinians: {row['Palestinians']} Israelis: {row['Israelis']} Total Users: {row['Total Users']}")
 
-    def calc_and_plot_reverts_ec(self):
-        data_reverts_ec = self.ec_reverts
-        df = pd.DataFrame(data_reverts_ec)
+    def calc_and_plot_ec_reverts(self):
+        df = pd.DataFrame(self.ec_reverts)
 
         df['Palestinian Ratio'] = df['Palestinians'] / df['Total Users']
         df['Israeli Ratio'] = df['Israelis'] / df['Total Users']
@@ -228,18 +223,43 @@ class Graphs():
         plt.legend(fontsize=14)
         plt.show()
 
+    def calc_and_plot_ec_tag(self):
+        pro_palestine_ratio = [pp / t for pp, t in zip(self.ec_tag.pro_palestine, self.ec_tag.total)]
+        pro_israel_ratio = [pi / t for pi, t in zip(self.ec_tag.pro_israel, self.ec_tag.total)]
 
-    def routine(self):
-        self.general_population_graph_data()
-        self.general_population_graph_hourly()
-        self.general_population_graph_15min()
-        self.calculate_mean_and_variance()
-        self.calc_and_plot_ec_contribs()
-        self.calc_and_plot_reverts()
-        self.calc_and_plot_reverts_ec()
-        self.calc_and_plot_ec_tag()
-        self.calc_and_plot_ec_tag_general_population(is_normalized= True)
+        bar_width = 0.35
+        index = np.arange(len(self.ec_tag.months))
 
+        plt.figure(figsize=(10, 6))
+        plt.bar(index - bar_width / 2, pro_palestine_ratio, bar_width, color='red', label='Pro-Palestine Ratio')
+        plt.bar(index + bar_width / 2, pro_israel_ratio, bar_width, color='blue', label='Pro-Israel Ratio')
 
+        plt.xlabel('Months', fontsize=14)
+        plt.ylabel('Mean (Pro-Palestine / Pro-Israel)', fontsize=14)
+        plt.title('Got EC Within Months From Registration', fontsize=16)
 
+        plt.xticks(index, self.ec_tag.months)
+        plt.legend(fontsize=12)
+        plt.tight_layout()
+        plt.show()
+
+    def general_population_graph_ec_tag(self):
+        pro_palestine_ratio = [pp * 100 / t for pp, t in zip(self.ec_tag_general_population.pro_palestine, self.ec_tag_general_population.total)]
+        pro_israel_ratio = [pi * 100 / t for pi, t in zip(self.ec_tag_general_population.pro_israel, self.ec_tag_general_population.total)]
+
+        bar_width = 0.35
+        index = np.arange(len(self.ec_tag_general_population.months))
+
+        plt.figure(figsize=(10, 6))
+        plt.bar(index - bar_width / 2, pro_palestine_ratio, bar_width, color='red', label='Pro-Palestine')
+        plt.bar(index + bar_width / 2, pro_israel_ratio, bar_width, color='blue', label='Pro-Israel')
+
+        plt.xlabel('Months', fontsize=14)
+        plt.ylabel('Percentage of Pro Israel and Pro Palestine users(%)', fontsize=14)
+        plt.title('Got EC Within Months From Registration - General Population', fontsize=16)
+
+        plt.xticks(index, self.ec_tag_general_population.months)
+        plt.legend(fontsize=12)
+        plt.tight_layout()
+        plt.show()
 

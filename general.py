@@ -34,3 +34,22 @@ class IterationsData:
 
     def il_mean(self, iteration):
         return self.num_israelis[iteration] / self.total_users[iteration]
+
+class Data:
+    def __init__(self):
+        self.iterations = []
+        self.pro_palestine = []
+        self.pro_israel = []
+        self.total_users = []
+
+    def insert(self, raw_data):
+
+
+class TimeData:
+    def __init__(self):
+        self.months = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, "12+"]
+        self.pro_palestine = []
+        self.pro_israel = []
+        self.total = []
+
+    def insert(self, raw_data):
