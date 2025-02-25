@@ -3,15 +3,17 @@ import os
 from datetime import datetime
 
 class Export():
-    def __init__(self, data, folder):
-        self.data = data
+    def __init__(self, fname, folder= ""):
+        self.fname = fname
         self.folder = folder
 
-    def export_to_json(self):
-        filename = f"export_{datetime.now().strftime('%Y%m%d_%H%M')}.json"
-        filepath = os.path.join(self.folder, filename)
+    def export_to_json(self, data, class_name):
+        if self.folder == "":
+            self.folder = f"export_{datetime.now().strftime('%Y%m%d_%H')}"
+        filepath = os.path.join(self.folder, self.fname)
+        structured_data = {class_name: data}
 
-        with open(filepath, "w") as file:
-            json.dump(self.data, file)
+        with open(filepath, "a") as file:
+            json.dump(structured_data, file)
 
         print(f"Data successfully exported to {filepath}")

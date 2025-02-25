@@ -23,12 +23,12 @@ if __name__ == '__main__':
     #Load configuration
     with open("config.json", "r") as f:
         config = json.load(f)
-    """
+
     #install packages to environment
     packages = ["neo4j", "requests", "numpy", "pandas", "seaborn", "logging", "matplotlib"]
     for package in packages:
         install(package)
-    """
+
 
     #Reading from configuration file
     kernel_users = config['kernel']['users']
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     general_population_data = config['data']['is_from_db']
     expanding_data = config['data']['is_from_json']
 
-
+    folderName = config['folder']
 
     if (is_measurement):
         config_neo = config['neo4j']['measurements']
@@ -70,6 +70,9 @@ if __name__ == '__main__':
         measurement = measurements.DescryptiveAnalytics(driver, kernel_users)
         measurement.routine()
 
+        ex = export.Export("Measurement", folderName)
+        ex.export_to_json(contribution.iterations_data, "contributions")
+        ex.export_to_json(revert.iterations_data, "ec_reverts")
 
     if (is_general_population):
         config_neo = config['neo4j']['general_population']
@@ -78,6 +81,8 @@ if __name__ == '__main__':
         general_population = general_population.GeneralPopulation(driver, kernel_users, kernel_pages, months_start, days, classify)
         general_population.routine()
 
+        ex = export.Export("General Population", folderName)
+        ex.export_to_json(general_population.data)
 
     if (is_expansions):
         config_neo = config['neo4j']['expansions']
@@ -85,8 +90,13 @@ if __name__ == '__main__':
         classify = classify.Classify(driver, project_palestine_users, palestine_userbox, israel_userbox)
         contribution = contributions.Contributions(driver, max_iterations_contribs, kernel_users, kernel_pages, months_start, months_end, classify)
         revert = reverts.RevertsEC(driver, max_iterations_reverts, kernel_users, kernel_pages, months_start, months_end, classify)
+
+        ex = export.Export("Expansions", folderName)
+        ex.export_to_json(contribution.iterations_data, "contributions")
+        ex.export_to_json(revert.iterations_data, "ec_reverts")
+
         #Todo: add grades and cutoff
-        #Todo: print data to json
+
 
     if (is_graphs):
         # draw jupyter graphs
@@ -134,10 +144,6 @@ if __name__ == '__main__':
 
 
 
-
-
-
-    #extract data to output file
     #add expansions with cutoff
     #add final user list
 
