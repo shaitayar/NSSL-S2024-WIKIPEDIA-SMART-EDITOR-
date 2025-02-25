@@ -106,20 +106,19 @@ class Contributions:
             # print(f"{user}, total_contribs: {total_count} inserted to Neo4j")
 
     def pages_to_users_no_limit(self, pages, all_users, months_start=5, months_end=6):
-        # Get the current date and time
         # cutoff_date = datetime.datetime.utcnow() - datetime.timedelta(days=days)
         end_date = datetime.datetime.utcnow() - datetime.timedelta(days=months_end * 30)
         start_date = datetime.datetime.utcnow() - datetime.timedelta(days=months_start * 30)
 
         for page in pages:
-            rccontinue = None  # This will hold the continue parameter for pagination
+            rccontinue = None
             while True:
-                # Build the request URL, adding rccontinue if it exists
+
                 url = f"https://en.wikipedia.org/w/api.php?action=query&prop=revisions&rvstart={start_date}&rvend={end_date}&rvlimit=500&format=json&titles={page['title']}"
                 if rccontinue:
                     url += f"&rccontinue={rccontinue}"
 
-                # Send the GET request to the API
+
                 resp = requests.get(url)
 
                 if resp.status_code == 200:
@@ -134,7 +133,6 @@ class Contributions:
                                     name = contrib.get('user')
                                     timestamp_str = contrib.get('timestamp')
                                     if name and timestamp_str:
-                                        # Convert the timestamp to a datetime object
                                         timestamp = datetime.datetime.strptime(contrib['timestamp'],
                                                                                '%Y-%m-%dT%H:%M:%SZ')
 
@@ -160,7 +158,6 @@ class Contributions:
         with self.driver.session() as session:
             for title, count in title_counts.items():
                 if count > 1:
-                    # First, check if the title already exists, and if not, add an iteration field to the page node
                     result = session.run(
                         """
                         MATCH (p:Page {title: $title})
@@ -178,7 +175,6 @@ class Contributions:
                             """, title=title, iteration=self.iteration)
                         # print(f"Iteration for {title} set to {iteration}")
 
-                    # Proceed to create the contribution relationship
                     session.run(
                         """
                         MERGE (u:User {username: $username})
@@ -218,7 +214,6 @@ class Contributions:
             f"https://en.wikipedia.org/w/api.php?action=query&format=json&list=users&usprop=registration&ususers={username}")
         if response.status_code == 200:
             data = response.json()
-            # Extracting title from the response
             try:
                 reg = data['query']['users'][0]
                 metadata['registration'] = reg.get('registration')
@@ -368,7 +363,6 @@ class Contributions:
                 m = next((p['level'] for p in page['protection'] if p['type'] == 'move'), None)
                 # print(f"Page Title: {page.get('title')}, Edit Protection: {e}, Move Protection: {m} inserted into Neo4j")
 
-    # This function get list of pages, queries the API and return the pages protection level
     def get_page_protection_level_data(self, pages):
         i = 0
         for page in pages:
@@ -381,7 +375,6 @@ class Contributions:
 
             if resp.status_code == 200:
                 data = resp.json()
-                # Extracting title from the response
                 try:
                     p = data.get('query', {}).get('pages', {})
                     for page_id, page_info in p.items():
@@ -420,7 +413,6 @@ class Contributions:
             if uccontinue:
                 url += f"&uccontinue={uccontinue}"
 
-            # Send the GET request to the API
             response = requests.get(url)
 
             if response.status_code == 200:
@@ -449,7 +441,7 @@ class Contributions:
 
                     if 'continue' in data:
                         uccontinue = data['continue']['uccontinue']
-                    else:  # No more pages to fetch
+                    else:  # no more pages to fetch
                         break
                 except KeyError:
                     # print(f"No contributions found for user {username}")

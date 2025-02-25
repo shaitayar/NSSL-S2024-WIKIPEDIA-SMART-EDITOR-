@@ -5,19 +5,30 @@ import general_population
 import measurements
 import classify
 import graphs
-
+import export
 import json
-
 from neo4j import GraphDatabase
 
+import subprocess
+import sys
+
+def install(package):
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
 def connect_to_neo4j(uri, username, password):
     return GraphDatabase.driver(uri, auth=(username, password))
 
 if __name__ == '__main__':
+
     #Load configuration
     with open("config.json", "r") as f:
         config = json.load(f)
+    """
+    #install packages to environment
+    packages = ["neo4j", "requests", "numpy", "pandas", "seaborn", "logging", "matplotlib"]
+    for package in packages:
+        install(package)
+    """
 
     #Reading from configuration file
     kernel_users = config['kernel']['users']
@@ -127,8 +138,6 @@ if __name__ == '__main__':
 
 
     #extract data to output file
-    #add jpyter graphs V
-    #amoeba X
     #add expansions with cutoff
     #add final user list
 

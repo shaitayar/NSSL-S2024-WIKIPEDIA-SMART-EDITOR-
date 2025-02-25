@@ -43,6 +43,10 @@ class Data:
         self.total_users = []
 
     def insert(self, raw_data):
+        self.iterations = raw_data['iterations']
+        self.pro_palestine = raw_data['pro_palestine']
+        self.pro_israel = raw_data['pro_israel']
+        self.total_users = raw_data['total_users']
 
 
 class TimeData:
@@ -53,3 +57,6 @@ class TimeData:
         self.total = []
 
     def insert(self, raw_data):
+        self.pro_palestine = raw_data['pro_palestine']
+        self.pro_israel = raw_data['pro_israel']
+        self.total = raw_data['total']

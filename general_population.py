@@ -1,6 +1,7 @@
 import csv
 import requests
 import datetime
+import general
 
 class GeneralPopulation:
     def __init__(self, driver, kernel_users, kernel_pages, months_start, days, classify):
@@ -11,7 +12,7 @@ class GeneralPopulation:
         self.days = days
         self.classify = classify
 
-        self.data = Data()
+        self.data = general.Data()
 
     def routine(self):
         recent_edit_users = self.get_recent_edits()
