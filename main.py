@@ -82,7 +82,8 @@ if __name__ == '__main__':
         general_population.routine()
 
         ex = export.Export("General Population", folderName)
-        ex.export_to_json(general_population.data)
+        ex.export_to_json(general_population.data, "General Population")
+        #Todo: add general population data correctly
 
     if (is_expansions):
         config_neo = config['neo4j']['expansions']
