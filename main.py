@@ -73,6 +73,7 @@ if __name__ == '__main__':
         ex = export.Export("Measurement", folderName)
         ex.export_to_json(contribution.iterations_data, "contributions")
         ex.export_to_json(revert.iterations_data, "ec_reverts")
+        driver.close()
 
     if (is_general_population):
         config_neo = config['neo4j']['general_population']
@@ -82,8 +83,8 @@ if __name__ == '__main__':
         general_population.routine()
 
         ex = export.Export("General Population", folderName)
-        ex.export_to_json(general_population.data, "General Population")
-        #Todo: add general population data correctly
+        ex.export_to_json(general_population.time_data, "General Population")
+        driver.close()
 
     if (is_expansions):
         config_neo = config['neo4j']['expansions']
@@ -97,6 +98,7 @@ if __name__ == '__main__':
         ex.export_to_json(revert.iterations_data, "ec_reverts")
 
         #Todo: add grades and cutoff
+        driver.close()
 
 
     if (is_graphs):
@@ -120,6 +122,7 @@ if __name__ == '__main__':
         pro_israel_data = general['pro_israel_data']
         neutral_data = general['neutral_data']
 
+        # Todo: add general population data correctly to graphs
 
         graph = graphs.Graphs(pro_israel_data, pro_palestine_data, neutral_data, contributions_data, reverts_data, ec_reverts_data, ec_tag_data)
 

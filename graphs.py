@@ -1,4 +1,3 @@
-from collections import defaultdict
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -24,37 +23,6 @@ class Graphs():
         self.reverts = reverts
         self.ec_reverts = ec_reverts
         self.ec_tag = ec_tag
-
-    def general_population_graph_data(self):
-        pro_israel_15min = defaultdict(int)
-        pro_palestine_15min = defaultdict(int)
-        neutral_15min = defaultdict(int)
-
-        il = 0  # pro-Israel total
-        pn = 0  # pro-Palestine total
-        neutral_count = 0
-        with self.driver.session() as session:
-            res = session.run("""
-                MATCH (u:User)
-                RETURN u.username, u.pro_israel, u.pro_palestine, u.time
-            """)
-
-            for record in res:
-                is_pro_israel = record.get('u.pro_israel', None)
-                is_pro_palestine = record.get('u.pro_palestine', None)
-                time = record.get('u.time', None)
-                if time:
-                    # Group based on the hour
-                    if is_pro_israel is not None:
-                        pro_israel_15min[time] += 1
-                        il += 1
-                    if is_pro_palestine is not None:
-                        pro_palestine_15min[time] += 1
-                        pn += 1
-                    if is_pro_israel is None and is_pro_palestine is None:
-                        neutral_15min[time] += 1
-                        neutral_count += 1
-
 
     def get_hourly_averages(self, data):
         hourly_averages = []

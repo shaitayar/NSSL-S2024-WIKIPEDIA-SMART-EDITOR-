@@ -2,7 +2,8 @@
     "operation": {
       "is_measurement": false,
       "is_general_population": false,
-      "is_expansions": true
+      "is_expansions": false,
+      "is_graphs": false
     },
 
     "neo4j": {
@@ -23,11 +24,11 @@
         }
     },
     "duration": {
-        "month_start": 6,
+        "months_start": 6,
         "months_end": 7,
         "days_for_recent_changes": 4
     },
-
+    "folder":"",
     "logging": {
         "filename": "app.log",
         "filemode": "a",

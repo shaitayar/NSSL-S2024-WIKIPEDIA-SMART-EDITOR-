@@ -2,6 +2,8 @@ import csv
 import requests
 import datetime
 import general
+from collections import defaultdict
+import pandas as pd
 
 class GeneralPopulation:
     def __init__(self, driver, kernel_users, kernel_pages, months_start, days, classify):
@@ -12,7 +14,49 @@ class GeneralPopulation:
         self.days = days
         self.classify = classify
 
-        self.data = general.Data()
+        self.time_data = general.TimeData()
+
+    def general_population_graph_data(self):
+        pro_israel_15min = defaultdict(int)
+        pro_palestine_15min = defaultdict(int)
+        neutral_15min = defaultdict(int)
+
+        il = 0  # pro-Israel total
+        pn = 0  # pro-Palestine total
+        neutral_count = 0
+
+        all_intervals = [f"{hour:02}:{minute:02}" for hour in range(24) for minute in [0, 15, 30, 45]]
+
+        with self.driver.session() as session:
+            res = session.run("""
+                MATCH (u:User)
+                RETURN u.username, u.pro_israel, u.pro_palestine, u.time
+            """)
+
+            for record in res:
+                is_pro_israel = record.get('u.pro_israel', None)
+                is_pro_palestine = record.get('u.pro_palestine', None)
+                time = record.get('u.time', None)
+                if time:
+                    # Group based on the hour
+                    if is_pro_israel is not None:
+                        pro_israel_15min[time] += 1
+                        il += 1
+                    if is_pro_palestine is not None:
+                        pro_palestine_15min[time] += 1
+                        pn += 1
+                    if is_pro_israel is None and is_pro_palestine is None:
+                        neutral_15min[time] += 1
+                        neutral_count += 1
+
+        pro_israel_15min_array = [pro_israel_15min.get(interval, 0) for interval in all_intervals]
+        pro_palestine_15min_array = [pro_palestine_15min.get(interval, 0) for interval in all_intervals]
+        neutral_15min_array = [neutral_15min.get(interval, 0) for interval in all_intervals]
+
+        self.time_data.time = all_intervals
+        self.time_data.pro_palestine = pro_israel_15min_array
+        self.time_data.pro_israel = pro_palestine_15min_array
+        self.time_data.total = neutral_15min_array
 
     def routine(self):
         recent_edit_users = self.get_recent_edits()
@@ -20,13 +64,12 @@ class GeneralPopulation:
         insert_all_to_neo4j = self.insert_all(recent_edit_users_no_dups)
         all_users = self.fetch_users_every_15_minutes()
 
-        csv_file = "names.csv"
+        #csv_file = "names.csv"
 
-        with open(csv_file, mode="w", newline="", encoding="utf-8") as file:
-            writer = csv.writer(file)
-            # Write each username in a new row
-            for user in all_users:
-                writer.writerow([user['user']])
+        #with open(csv_file, mode="w", newline="", encoding="utf-8") as file:
+        #    writer = csv.writer(file)
+        #    for user in all_users:
+        #        writer.writerow([user['user']])
 
         self.process_user_data(all_users)
 
@@ -34,6 +77,7 @@ class GeneralPopulation:
         self.classify.classify_editor_by_name()
         self.classify.classify_editor_by_palestine_project()
 
+        self.general_population_graph_data()
 
     def round_to_quarter_hour(self, arr):
         rounded_dict = []

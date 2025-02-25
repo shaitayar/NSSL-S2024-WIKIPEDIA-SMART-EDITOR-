@@ -52,11 +52,21 @@ class Data:
 class TimeData:
     def __init__(self):
         self.months = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, "12+"]
+        self.time = []
         self.pro_palestine = []
         self.pro_israel = []
         self.total = []
 
     def insert(self, raw_data):
+        self.time = raw_data['time']
         self.pro_palestine = raw_data['pro_palestine']
         self.pro_israel = raw_data['pro_israel']
         self.total = raw_data['total']
+
+    def to_dict(self):
+        return {
+            'time': self.time,
+            'pro_palestine': self.pro_palestine,
+            'pro_israel': self.pro_israel,
+            'total': self.total
+        }
