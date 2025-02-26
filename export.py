@@ -5,7 +5,7 @@ import glob
 
 class Export():
     def __init__(self):
-        self.fname = f"export_{datetime.now().strftime('%Y%m%d_%H')}.json"
+        self.fname = f"export_{datetime.now().strftime('%Y%m%d_%H%M')}.json"
         self.folder = "exports"
 
         os.makedirs(self.folder, exist_ok=True)
@@ -34,12 +34,11 @@ class Import():
         if(self.filename != ""):
             filepath = os.path.join("exports", self.filename)
         else:
-            file = self.get_latest_json()
-            filepath = os.path.join("exports", file)
+            filepath = self.get_latest_json()
 
         with open(filepath, "r") as file:
             try:
-                data = json.load(file)
+                self.data = json.load(file)
             except json.JSONDecodeError:
                 print(f"Error Loading {filepath} data")
 

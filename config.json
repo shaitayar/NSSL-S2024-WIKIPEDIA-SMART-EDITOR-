@@ -3,9 +3,32 @@
       "is_measurement": false,
       "is_general_population": false,
       "is_expansions": false,
-      "is_graphs": false
+      "is_graphs": true
     },
-
+    "graphs": {
+      "general_population_hour": true,
+      "general_population_15min": true,
+      "general_population_ec_tag": true,
+      "contributions": false,
+      "reverts": false,
+      "ec_reverts": false,
+      "ec_tag": false
+    },
+    "duration": {
+        "months_start": 6,
+        "months_end": 7,
+        "days_for_recent_changes": 4
+    },
+    "graph_input_filename":"",
+    "logging": {
+        "filename": "app.log",
+        "filemode": "a",
+        "level": "INFO"
+    },
+    "max_iterations": {
+        "contribs": 10,
+        "reverts": 10
+    },
     "neo4j": {
         "measurements": {
             "uri": "bolt://localhost:7687",
@@ -22,21 +45,6 @@
             "username": "project",
             "password": "12345678"
         }
-    },
-    "duration": {
-        "months_start": 6,
-        "months_end": 7,
-        "days_for_recent_changes": 4
-    },
-    "folder":"",
-    "logging": {
-        "filename": "app.log",
-        "filemode": "a",
-        "level": "INFO"
-    },
-    "max_iterations": {
-        "contribs": 10,
-        "reverts": 10
     },
     "kernel": {
         "users": [
@@ -105,6 +113,7 @@
           "Whaledad", "DieWeisseRose", "Wiki_Khalil", "Wodge", "Yahel Guhan", "Yamanam", "Yara Pal", "Yishai Statter",
           "Zakouma", "apathyash", "arbnmp", "batoul84", "JaapBoBo", "Isamishaq", "toadstooljuice", "יורם שורק",
           "عماد_الدين_المقدسي", "Engelo"],
+
         "israel": [
           "Ynhockey", "GHcool", "sm8900", "Valley2city", "Timeshifter",
           "Shmuliko", "Number 57", "Malik Shabazz", "Ravpapa", "Telaviv1",

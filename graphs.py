@@ -1,6 +1,8 @@
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
 
 class Stats:
     pro_israel_mean = 0
@@ -47,9 +49,10 @@ class Graphs():
         pro_palestine_std_dev = pro_palestine_weights.std()
 
     def calc_and_plot_ec_contribs(self):
-        data_contribs = self.contributions
-
-        df = pd.DataFrame(data_contribs)
+        if not self.contributions:
+            print("Unable To Plot Contributions Graph - Empty Contributions")
+            return
+        df = pd.DataFrame(self.contributions)
         df['Mean Ratio'] = df['Palestinians'] / df['Total Users']
 
         plt.figure(figsize=(10, 6))
@@ -75,7 +78,9 @@ class Graphs():
         plt.show()
 
     def calc_and_plot_reverts(self):
-
+        if not self.reverts:
+            print("Unable To Plot Reverts Graph - Empty Reverts")
+            return
         df = pd.DataFrame(self.reverts)
 
         df['Palestinian Ratio'] = df['Palestinians'] / df['Total Users']
@@ -106,6 +111,9 @@ class Graphs():
         #    print(f"Iteration: {row['Iteration']} - Palestinians: {row['Palestinians']} Israelis: {row['Israelis']} Total Users: {row['Total Users']}")
 
     def calc_and_plot_ec_reverts(self):
+        if not self.ec_reverts:
+            print("Unable To Plot EC Reverts Graph - Empty EC Reverts")
+            return
         df = pd.DataFrame(self.ec_reverts)
 
         df['Palestinian Ratio'] = df['Palestinians'] / df['Total Users']
@@ -133,6 +141,9 @@ class Graphs():
         plt.show()
 
     def calc_and_plot_ec_tag(self):
+        if not self.data_ec_tag:
+            print("Unable To Plot EC Tag Graph - Empty EC Tag")
+            return
         pro_palestine_ratio = [pp / t for pp, t in zip(self.data_ec_tag.pro_palestine, self.data_ec_tag.total)]
         pro_israel_ratio = [pi / t for pi, t in zip(self.data_ec_tag.pro_israel, self.data_ec_tag.total)]
 
@@ -181,13 +192,15 @@ class GeneralPopulationGraph:
         return hourly_averages
 
     def general_population_graph_hourly(self):
-
+        if not self.time_data:
+            print("Unable To Plot General Population Graph - Empty General Population")
+            return
         time_intervals = [f"{h:02}:{m:02}" for h in range(24) for m in range(0, 60, 15)]
-
-        pro_israel_data = pd.Series(self.time_data.pro_israel).reindex(time_intervals, fill_value=0)
-        pro_palestine_data = pd.Series(self.time_data.pro_palestine).reindex(time_intervals, fill_value=0)
-        neutral_data = pd.Series(self.time_data.neutral).reindex(time_intervals, fill_value=0)
-        total_data = self.time_data.pro_israel + self.time_data.pro_palestine + self.time_data.neutral
+        dd = self.time_data.to_default_dict()
+        pro_israel_data = pd.Series(dd['pro_israel_dict']).reindex(time_intervals, fill_value=0)
+        pro_palestine_data = pd.Series(dd['pro_palestine_dict']).reindex(time_intervals, fill_value=0)
+        neutral_data = pd.Series(dd['neutral_dict']).reindex(time_intervals, fill_value=0)
+        total_data = pro_israel_data + pro_palestine_data + neutral_data
 
         pro_israel_hourly = self.get_hourly_averages(pro_israel_data)
         pro_palestine_hourly = self.get_hourly_averages(pro_palestine_data)
@@ -215,12 +228,18 @@ class GeneralPopulationGraph:
         plt.show()
 
     def general_population_graph_15min(self):
+        if not self.time_data:
+            print("Unable To Plot General Population Graph - Empty General Population")
+            return
+
         time_intervals = [f"{h:02}:{m:02}" for h in range(24) for m in range(0, 60, 15)]
 
-        pro_israel_data = pd.Series(self.time_data.pro_israel).reindex(time_intervals, fill_value=0)
-        pro_palestine_data = pd.Series(self.time_data.pro_palestine).reindex(time_intervals, fill_value=0)
-        neutral_data = pd.Series(self.time_data.neutral).reindex(time_intervals, fill_value=0)
+        dd = self.time_data.to_default_dict()
+        pro_israel_data = pd.Series(dd['pro_israel_dict']).reindex(time_intervals, fill_value=0)
+        pro_palestine_data = pd.Series(dd['pro_palestine_dict']).reindex(time_intervals, fill_value=0)
+        neutral_data = pd.Series(dd['neutral_dict']).reindex(time_intervals, fill_value=0)
         total_data = pro_israel_data + pro_palestine_data + neutral_data
+
         total_users_all_day = total_data.sum()
 
         plt.figure(figsize=(14, 8))
@@ -242,6 +261,9 @@ class GeneralPopulationGraph:
         plt.show()
 
     def general_population_graph_ec_tag(self):
+        if not self.ec_time_data:
+            print("Unable To Plot General Population EC Tag Graph - Empty General Population EC Tag")
+            return
         pro_palestine_ratio = [pp * 100 / t for pp, t in zip(self.ec_time_data.pro_palestine, self.ec_time_data.neutral)]
         pro_israel_ratio = [pi * 100 / t for pi, t in zip(self.ec_time_data.pro_israel, self.ec_time_data.neutral)]
 

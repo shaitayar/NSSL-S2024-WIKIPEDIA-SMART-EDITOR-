@@ -37,7 +37,7 @@ if __name__ == '__main__':
     months_end = config['duration']['months_end']
     max_iterations_contribs = config['max_iterations']['contribs']
     max_iterations_reverts = config['max_iterations']['reverts']
-    days =config['duration']['days_for_recent_changes']
+    days = config['duration']['days_for_recent_changes']
 
     is_measurement = config['operation']
     is_general_population = config['is_general_population']
@@ -53,13 +53,14 @@ if __name__ == '__main__':
     graph_ec_tag = config['graphs']['ec_tag']
 
     project_palestine_users = config['wikiProject']['palestine']
+    project_israel_users = config['wikiProject']['israel']
     palestine_userbox = config['userboxes']['pro_palestine']
     israel_userbox = config['userboxes']['pro_israel']
 
     general_population_data = config['data']['is_from_db']
     expanding_data = config['data']['is_from_json']
 
-    filename = config['file']
+    filename = config['graph_input_filename']
 
     if (is_measurement):
         config_neo = config['neo4j']['measurements']
@@ -78,7 +79,7 @@ if __name__ == '__main__':
     if (is_general_population):
         config_neo = config['neo4j']['general_population']
         driver = connect_to_neo4j(config_neo['uri'], config_neo['username'], config_neo['password'])
-        classify = classify.Classify(driver, project_palestine_users, palestine_userbox, israel_userbox)
+        classify = classify.Classify(driver, project_palestine_users, project_israel_users, palestine_userbox, israel_userbox)
         general_population = general_population.GeneralPopulation(driver, kernel_users, kernel_pages, months_start, days, classify)
         general_population.routine()
 
@@ -90,7 +91,7 @@ if __name__ == '__main__':
     if (is_expansions):
         config_neo = config['neo4j']['expansions']
         driver = connect_to_neo4j(config_neo['uri'], config_neo['username'], config_neo['password'])
-        classify = classify.Classify(driver, project_palestine_users, palestine_userbox, israel_userbox)
+        classify = classify.Classify(driver, project_palestine_users, project_israel_users, palestine_userbox, israel_userbox)
         contribution = contributions.Contributions(driver, max_iterations_contribs, kernel_users, kernel_pages, months_start, months_end, classify)
         revert = reverts.RevertsEC(driver, max_iterations_reverts, kernel_users, kernel_pages, months_start, months_end, classify)
 

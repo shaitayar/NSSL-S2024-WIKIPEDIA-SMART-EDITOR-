@@ -2,6 +2,7 @@ from general import IterationsData
 import datetime
 import requests
 
+
 class Contributions:
     def __init__(self, driver, max_iterations, kernel_users, kernel_pages, months_start, months_end, classify):
         self.driver = driver

@@ -104,7 +104,7 @@ class GeneralPopulation:
             for record in result:
                 self.ec_time_data.pro_palestine.append(record['num_pro_palestine'])
                 self.ec_time_data.pro_israel(record['num_pro_israel'])
-                self.ec_time_data.total.append(record['total'])
+                self.ec_time_data.neutral.append(record['neutral'])
 
     def run_query_final(self):
         query = """
@@ -126,7 +126,7 @@ class GeneralPopulation:
             for record in result:
                 self.ec_time_data.pro_palestine.append(record['num_pro_palestine'])
                 self.ec_time_data.pro_israel(record['num_pro_israel'])
-                self.ec_time_data.total.append(record['total'])
+                self.ec_time_data.neutral.append(record['neutral'])
 
     def general_population_ec_tag(self):
         for month in range(1, 13):
