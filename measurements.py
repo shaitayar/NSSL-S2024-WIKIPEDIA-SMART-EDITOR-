@@ -10,21 +10,20 @@ class Type(Enum):
 
 class DescryptiveAnalytics:
     def __init__(self, driver, users):
-        self.type = 1
+        self.types = Type.CONTRIBS
         self.driver = driver
         self.users = users
 
     def fetch_data(self, tx):
         params = {}
-        match type:
-            case 1:
-                params= {
-                'edge': 'r:CONTRIBUTED_TO',
-                'user': 'u.total_contribs'}
-            case 2:
-                params = {
-                'edge': 'r:REVERTED_PAGE',
-                'user': 'u.total_reverts'}
+        if self.types == Type.CONTRIBS:
+            params= {
+            'edge': 'r:CONTRIBUTED_TO',
+            'user': 'u.total_contribs'}
+        elif self.types == Type.REVERTS:
+            params = {
+            'edge': 'r:REVERTED_PAGE',
+            'user': 'u.total_reverts'}
 
         query = f"""
         MATCH (u:User)-[{params['edge']}]->(p:Page)
@@ -55,15 +54,15 @@ class DescryptiveAnalytics:
         for i, username in enumerate(usernames):
             if username in users:
                 plt.scatter(percent_protected[i], total[i], color='red', label=f'Highlighted: {username}')
-        match type:
-            case 1:
-                plt.title('User Contributions to EC Pages')
-                plt.xlabel('% of Contributions to EC Pages')
-                plt.ylabel('Total Contributions')
-            case 2:
-                plt.title('User Reverts to EC Pages')
-                plt.xlabel('% of Reverts to EC Pages')
-                plt.ylabel('Total Reverts')
+
+        if self.types == Type.CONTRIBS:
+            plt.title('User Contributions to EC Pages')
+            plt.xlabel('% of Contributions to EC Pages')
+            plt.ylabel('Total Contributions')
+        elif self.types == Type.REVERTS:
+            plt.title('User Reverts to EC Pages')
+            plt.xlabel('% of Reverts to EC Pages')
+            plt.ylabel('Total Reverts')
 
         plt.grid(True)
         plt.show()
@@ -96,11 +95,10 @@ class DescryptiveAnalytics:
         plt.xlabel('')
         plt.ylabel('ECDF')
 
-        match type:
-            case 1:
-                plt.title('ECDF for % EC Contributions')
-            case 2:
-                plt.title('ECDF for % EC Reverts')
+        if self.types == Type.CONTRIBS:
+            plt.title('ECDF for % EC Contributions')
+        elif self.types == Type.REVERTS:
+            plt.title('ECDF for % EC Reverts')
 
         plt.legend()
         plt.grid(True)
@@ -110,8 +108,8 @@ class DescryptiveAnalytics:
         self.create_scatter(set(user['user'] for user in self.users))
         self.ecdf(self.users)
 
-        self.type = 2
+        self.types = Type.REVERTS
 
         self.create_scatter(set(user['user'] for user in self.users))
-        self.ecdf_reverts(self.users)
+        self.ecdf(self.users)
 

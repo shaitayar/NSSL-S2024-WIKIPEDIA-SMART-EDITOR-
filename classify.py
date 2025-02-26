@@ -1,9 +1,10 @@
 class Classify:
-    def __init__(self, driver, project_palestine_users, palestine_userbox, israel_userbox):
+    def __init__(self, driver, project_palestine_users, project_israel_users, palestine_userbox, israel_userbox):
         self.driver = driver
         self.project_palestine_users = project_palestine_users
         self.palestine_userbox = palestine_userbox
         self.israel_userbox = israel_userbox
+        self.project_israel_users = project_israel_users
 
     def classify_editor(self):
         query = """
@@ -43,4 +44,12 @@ class Classify:
                 MATCH (u:User)
                 WHERE u.username IN {self.project_palestine_users}
                 SET u.pro_palestine =  1
+            """)
+
+    def classify_editor_by_israel_project(self):
+        with self.driver.session() as session:
+            session.run(f"""
+                MATCH (u:User)
+                WHERE u.username IN {self.project_israel_users}
+                SET u.pro_israel =  1
             """)

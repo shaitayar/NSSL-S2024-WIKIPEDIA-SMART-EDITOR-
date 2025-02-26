@@ -1,6 +1,9 @@
 import csv
 import requests
 import datetime
+import general
+from collections import defaultdict
+import pandas as pd
 
 class GeneralPopulation:
     def __init__(self, driver, kernel_users, kernel_pages, months_start, days, classify):
@@ -11,7 +14,8 @@ class GeneralPopulation:
         self.days = days
         self.classify = classify
 
-        self.data = Data()
+        self.time_data = general.TimeData()
+        self.ec_time_data = general.TimeData()
 
     def routine(self):
         recent_edit_users = self.get_recent_edits()
@@ -19,13 +23,12 @@ class GeneralPopulation:
         insert_all_to_neo4j = self.insert_all(recent_edit_users_no_dups)
         all_users = self.fetch_users_every_15_minutes()
 
-        csv_file = "names.csv"
+        #csv_file = "names.csv"
 
-        with open(csv_file, mode="w", newline="", encoding="utf-8") as file:
-            writer = csv.writer(file)
-            # Write each username in a new row
-            for user in all_users:
-                writer.writerow([user['user']])
+        #with open(csv_file, mode="w", newline="", encoding="utf-8") as file:
+        #    writer = csv.writer(file)
+        #    for user in all_users:
+        #        writer.writerow([user['user']])
 
         self.process_user_data(all_users)
 
@@ -33,6 +36,102 @@ class GeneralPopulation:
         self.classify.classify_editor_by_name()
         self.classify.classify_editor_by_palestine_project()
 
+        self.general_population_graph_data()
+        self.general_population_ec_tag()
+
+
+    def general_population_graph_data(self):
+        pro_israel_15min = defaultdict(int)
+        pro_palestine_15min = defaultdict(int)
+        neutral_15min = defaultdict(int)
+
+        il = 0  # pro-Israel total
+        pn = 0  # pro-Palestine total
+        neutral_count = 0
+
+        all_intervals = [f"{hour:02}:{minute:02}" for hour in range(24) for minute in [0, 15, 30, 45]]
+
+        with self.driver.session() as session:
+            res = session.run("""
+                MATCH (u:User)
+                RETURN u.username, u.pro_israel, u.pro_palestine, u.time
+            """)
+
+            for record in res:
+                is_pro_israel = record.get('u.pro_israel', None)
+                is_pro_palestine = record.get('u.pro_palestine', None)
+                time = record.get('u.time', None)
+                if time:
+                    # Group based on the hour
+                    if is_pro_israel is not None:
+                        pro_israel_15min[time] += 1
+                        il += 1
+                    if is_pro_palestine is not None:
+                        pro_palestine_15min[time] += 1
+                        pn += 1
+                    if is_pro_israel is None and is_pro_palestine is None:
+                        neutral_15min[time] += 1
+                        neutral_count += 1
+
+        pro_israel_15min_array = [pro_israel_15min.get(interval, 0) for interval in all_intervals]
+        pro_palestine_15min_array = [pro_palestine_15min.get(interval, 0) for interval in all_intervals]
+        neutral_15min_array = [neutral_15min.get(interval, 0) for interval in all_intervals]
+
+        self.time_data.time = all_intervals
+        self.time_data.pro_palestine = pro_israel_15min_array
+        self.time_data.pro_israel = pro_palestine_15min_array
+        self.time_data.neutral = neutral_15min_array
+
+    def run_query(self, months):
+        query = """
+        MATCH (u:User)
+        WITH u,
+            datetime(replace(u.registration, "Z", "")) AS regDate,
+            datetime(replace(u.ec_timestamp, "Z", "")) AS ecDate
+        WITH u,
+        duration.between(regDate, ecDate) AS duration
+        WHERE (duration.years * 12 + duration.months + duration.days/30.0) < $months
+        AND (duration.years * 12 + duration.months + duration.days/30.0) >= $pre_months
+
+        RETURN 
+            SUM(CASE WHEN u.pro_palestine is not NULL THEN 1 ELSE 0 END) AS num_pro_palestine,
+            SUM(CASE WHEN u.pro_israel is not NULL THEN 1 ELSE 0 END) AS num_pro_israel,
+            count(u.username) AS total
+        """
+
+        with self.driver.session() as session:
+            result = session.run(query, months=months, pre_months=months - 1)
+            for record in result:
+                self.ec_time_data.pro_palestine.append(record['num_pro_palestine'])
+                self.ec_time_data.pro_israel(record['num_pro_israel'])
+                self.ec_time_data.neutral.append(record['neutral'])
+
+    def run_query_final(self):
+        query = """
+        MATCH (u:User)
+        WITH u,
+            datetime(replace(u.registration, "Z", "")) AS regDate,
+            datetime(replace(u.ec_timestamp, "Z", "")) AS ecDate
+        WITH u,
+        duration.between(regDate, ecDate) AS duration
+        WHERE (duration.years * 12 + duration.months) > 12
+        RETURN 
+            SUM(CASE WHEN u.pro_palestine is not NULL THEN 1 ELSE 0 END) AS num_pro_palestine,
+            SUM(CASE WHEN u.pro_israel is not NULL THEN 1 ELSE 0 END) AS num_pro_israel,
+            count(u.username) AS total
+        """
+
+        with self.driver.session() as session:
+            result = session.run(query)
+            for record in result:
+                self.ec_time_data.pro_palestine.append(record['num_pro_palestine'])
+                self.ec_time_data.pro_israel(record['num_pro_israel'])
+                self.ec_time_data.neutral.append(record['neutral'])
+
+    def general_population_ec_tag(self):
+        for month in range(1, 13):
+            self.run_query(month)
+        self.run_query_final()
 
     def round_to_quarter_hour(self, arr):
         rounded_dict = []
