@@ -16,12 +16,16 @@ def connect_to_neo4j(uri, username, password):
 
 class TestGeneralStuff(unittest.TestCase):
     def setUp(self) -> None:
-        with open("config.json", 'r', encoding='utf-8') as f:
-            config = json.load(f)
-        filename = config['graph_input_filename']
+        self.filename = "test_file_name"
+
     # test if can read from a file
     def test_read_import_file(self):
-        im = export.Import()
+        ex = export.Export()
+        ex.export_to_json("world!", "hello")
+        im = export.Import(self.filename)
+        im.import_from_json()
+        data = im.data.get("hello", [])
+        self.assertNotEqual(data, "world!")
 
 
 
@@ -161,7 +165,6 @@ class TestGraphs(unittest.TestCase):
                               contributions=None, reverts=reverts_data, ec_reverts=None, data_ec_tag=None,
                               general_population_data=None)
         graph.routine()
-
 
 if __name__ == "__main__":
     unittest.main()
