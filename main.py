@@ -59,7 +59,7 @@ if __name__ == '__main__':
     general_population_data = config['data']['is_from_db']
     expanding_data = config['data']['is_from_json']
 
-    folderName = config['folder']
+    filename = config['file']
 
     if (is_measurement):
         config_neo = config['neo4j']['measurements']
@@ -70,7 +70,7 @@ if __name__ == '__main__':
         measurement = measurements.DescryptiveAnalytics(driver, kernel_users)
         measurement.routine()
 
-        ex = export.Export("Measurement", folderName)
+        ex = export.Export()
         ex.export_to_json(contribution.iterations_data, "contributions")
         ex.export_to_json(revert.iterations_data, "ec_reverts")
         driver.close()
@@ -82,8 +82,9 @@ if __name__ == '__main__':
         general_population = general_population.GeneralPopulation(driver, kernel_users, kernel_pages, months_start, days, classify)
         general_population.routine()
 
-        ex = export.Export("General Population", folderName)
-        ex.export_to_json(general_population.time_data, "General Population")
+        ex = export.Export()
+        ex.export_to_json(general_population.time_data, "general_population_total")
+        ex.export_to_json(general_population.ec_time_data, "general_population_ec_tag")
         driver.close()
 
     if (is_expansions):
@@ -93,62 +94,52 @@ if __name__ == '__main__':
         contribution = contributions.Contributions(driver, max_iterations_contribs, kernel_users, kernel_pages, months_start, months_end, classify)
         revert = reverts.RevertsEC(driver, max_iterations_reverts, kernel_users, kernel_pages, months_start, months_end, classify)
 
-        ex = export.Export("Expansions", folderName)
+        ex = export.Export()
         ex.export_to_json(contribution.iterations_data, "contributions")
         ex.export_to_json(revert.iterations_data, "ec_reverts")
+        #todo: export ec tag
 
         #Todo: add grades and cutoff
+
+        #Todo: add final user list
         driver.close()
 
 
     if (is_graphs):
-        # draw jupyter graphs
-        contributions_data = general.Data()
-        reverts_data = general.Data()
-        ec_reverts_data = general.Data()
-        ec_tag_data = general.TimeData()
 
-        with open(f"{expanding_data}.json", "r") as f:
-            data = json.load(f)
-        contributions_data.insert(data['contributions'])
-        reverts_data.insert(data['reverts'])
-        ec_reverts_data.insert(data['ec_reverts'])
-        ec_tag_data.insert(data['ec_tag'])
-
-        with open(f"{general_population_data}.json", "r") as g:
-            general = json.load(g)
-
-        pro_palestine_data = general['pro_palestine_data']
-        pro_israel_data = general['pro_israel_data']
-        neutral_data = general['neutral_data']
-
-        # Todo: add general population data correctly to graphs
-
-        graph = graphs.Graphs(pro_israel_data, pro_palestine_data, neutral_data, contributions_data, reverts_data, ec_reverts_data, ec_tag_data)
-
-        #general population
         if(graph_general_population_hour or graph_general_population_15min or graph_general_population_ec_tag):
-            if(graph_general_population_hour):
-                graph.general_population_graph_hourly()
-            if(graph_general_population_15min):
-                graph.general_population_graph_15min()
-            if(graph_general_population_ec_tag):
-                graph.general_population_graph_ec_tag()
+            general_population_total = general.TimeData()
+            general_population_ec_tag = general.TimeData()
+
+            im = export.Import(filename)
+            im.import_from_json()
+            general_population_total.insert(im.data['general_population_total'])
+            general_population_ec_tag.insert(im.data['general_population_ec_tag'])
+            gp_graph = graphs.GeneralPopulationGraph(graph_general_population_hour, graph_general_population_15min,
+                                                     graph_general_population_ec_tag, general_population_total, general_population_ec_tag)
+            gp_graph.routine()
 
         #expansions
         if(graph_contributions or graph_reverts or graph_ec_reverts or graph_ec_tag):
-            if(graph_contributions):
-                graph.calc_and_plot_ec_contribs()
-            if(graph_reverts):
-                graph.calc_and_plot_reverts()
-            if(graph_ec_reverts):
-                graph.calc_and_plot_ec_reverts()
-            if(graph_ec_tag):
-                graph.calc_and_plot_ec_tag()
+            contributions_data = general.Data()
+            reverts_data = general.Data()
+            ec_reverts_data = general.Data()
+            ec_tag_data = general.TimeData()
+            general_population_total = general.TimeData()
+
+            im = export.Import(filename)
+            im.import_from_json()
+            contributions_data.insert(im.data['contributions'])
+            reverts_data.insert(im.data['reverts'])
+            ec_reverts_data.insert(im.data['ec_reverts'])
+            ec_tag_data.insert(im.data['ec_tag'])
+            general_population_total.insert(im.data['general_population_total'])
+
+            graph = graphs.Graphs(graph_contributions, graph_reverts, graph_ec_reverts, graph_ec_tag,
+                                  contributions_data, reverts_data, ec_reverts_data, ec_tag_data, general_population_total)
+            graph.routine()
 
 
 
-    #add expansions with cutoff
-    #add final user list
 
 

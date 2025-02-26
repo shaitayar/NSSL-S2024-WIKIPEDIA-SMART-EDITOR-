@@ -55,18 +55,18 @@ class TimeData:
         self.time = []
         self.pro_palestine = []
         self.pro_israel = []
-        self.total = []
+        self.neutral = []
 
     def insert(self, raw_data):
         self.time = raw_data['time']
         self.pro_palestine = raw_data['pro_palestine']
         self.pro_israel = raw_data['pro_israel']
-        self.total = raw_data['total']
+        self.neutral = raw_data['neutral']
 
     def to_dict(self):
         return {
             'time': self.time,
             'pro_palestine': self.pro_palestine,
             'pro_israel': self.pro_israel,
-            'total': self.total
+            'neutral': self.neutral
         }
