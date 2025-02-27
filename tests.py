@@ -20,13 +20,35 @@ class TestGeneralStuff(unittest.TestCase):
 
     # test if can read from a file
     def test_read_import_file(self):
-        ex = export.Export()
+        ex = export.Export(self.filename)
         ex.export_to_json("world!", "hello")
+
         im = export.Import(self.filename)
         im.import_from_json()
         data = im.data.get("hello", [])
-        self.assertNotEqual(data, "world!")
+        self.assertEqual(data, "world!")
 
+    def test_export_multiple_times(self):
+        ex1 = export.Export()
+        ex1.export_to_json("world!", "Hello")
+
+        ex2 = export.Export()
+        ex2.export_to_json("olam!", "Shalom")
+
+        ex3 = export.Export()
+        ex3.export_to_json("mundo!", "Hola")
+
+
+        im = export.Import("")
+        im.import_from_json()
+        data = im.data.get("Hello", [])
+        self.assertEqual(data, "world!")
+
+        data = im.data.get("Shalom", [])
+        self.assertEqual(data, "olam!")
+
+        data = im.data.get("Hola", [])
+        self.assertEqual(data, "mundo!")
 
 
 # test if all measurements are correct
@@ -34,7 +56,7 @@ class TestMeasurements(unittest.TestCase):
     def setUp(self) -> None:
         with open("config.json", 'r', encoding='utf-8') as f:
             config = json.load(f)
-        config_neo = config['neo4j']['measurement']
+        config_neo = config['neo4j']['measurements']
         self.kernel_users = config['kernel']['users']
         self.driver = connect_to_neo4j(config_neo['uri'], config_neo['username'], config_neo['password'])
 
@@ -47,7 +69,7 @@ class TestGeneralPopulation(unittest.TestCase):
     def setUp(self) -> None:
         with open("config.json", 'r', encoding='utf-8') as f:
             config = json.load(f)
-        config_neo = config['neo4j']['measurement']
+        config_neo = config['neo4j']['general_population']
         self.driver = connect_to_neo4j(config_neo['uri'], config_neo['username'], config_neo['password'])
         self.kernel_users = config['kernel']['users']
         self.kernel_pages = config['kernel']['pages']
@@ -70,22 +92,22 @@ class TestGeneralPopulation(unittest.TestCase):
         self.general_population.general_population_ec_tag()
         ex = export.Export()
         ex.export_to_json(self.general_population.time_data.to_dict(), "general_population_total")
-        ex.export_to_json(self.general_population.ec_time_data, "general_population_ec_tag")
+        ex.export_to_json(self.general_population.ec_time_data.to_dict(), "general_population_ec_tag")
         im = export.Import(self.filename)
         im.import_from_json()
 
         general_population_total.insert(im.data.get('general_population_total', []))
         general_population_ec_tag.insert(im.data.get('general_population_ec_tag', []))
 
-        self.assertNotEqual(general_population_total.time, self.general_population.time_data.time)
-        self.assertNotEqual(general_population_total.pro_palestine, self.general_population.time_data.pro_palestine)
-        self.assertNotEqual(general_population_total.pro_israel, self.general_population.time_data.pro_israel)
-        self.assertNotEqual(general_population_total.neutral, self.general_population.time_data.neutral)
+        self.assertEqual(general_population_total.time, self.general_population.time_data.time)
+        self.assertEqual(general_population_total.pro_palestine, self.general_population.time_data.pro_palestine)
+        self.assertEqual(general_population_total.pro_israel, self.general_population.time_data.pro_israel)
+        self.assertEqual(general_population_total.neutral, self.general_population.time_data.neutral)
 
-        self.assertNotEqual(general_population_ec_tag.time, self.general_population.time_data.time)
-        self.assertNotEqual(general_population_ec_tag.pro_palestine, self.general_population.time_data.pro_palestine)
-        self.assertNotEqual(general_population_ec_tag.pro_israel, self.general_population.time_data.pro_israel)
-        self.assertNotEqual(general_population_ec_tag.neutral, self.general_population.time_data.neutral)
+        self.assertEqual(general_population_ec_tag.time, self.general_population.ec_time_data.time)
+        self.assertEqual(general_population_ec_tag.pro_palestine, self.general_population.ec_time_data.pro_palestine)
+        self.assertEqual(general_population_ec_tag.pro_israel, self.general_population.ec_time_data.pro_israel)
+        self.assertEqual(general_population_ec_tag.neutral, self.general_population.ec_time_data.neutral)
 
         self.driver.close()
     #test routine
@@ -104,7 +126,7 @@ class TestGeneralPopulation(unittest.TestCase):
 class TestExpansions(unittest.TestCase):
     pass
 
-# test if data imported correctly
+# test graphs class
 class TestGraphs(unittest.TestCase):
     def setUp(self) -> None:
         with open("config.json", 'r', encoding='utf-8') as f:
@@ -155,7 +177,6 @@ class TestGraphs(unittest.TestCase):
 
     #test what happens if the user tries to plot a graph without data in the json file
     def test_graph_no_data(self):
-
         reverts_data = general.Data()
         im = export.Import(self.filename)
         im.import_from_json()
