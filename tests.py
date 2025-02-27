@@ -147,8 +147,13 @@ class TestGraphs(unittest.TestCase):
 
             im = export.Import(self.filename)
             im.import_from_json()
-            general_population_total.insert(im.data.get('general_population_total', []))
-            general_population_ec_tag.insert(im.data.get('general_population_ec_tag', []))
+            if self.graph_general_population_hour or self.graph_general_population_15min:
+                try: general_population_total.insert(im.data.get('general_population_total', []))
+                except: print(f"no General Population Data in {im.filepath}")
+            if(self.graph_general_population_ec_tag):
+                try: general_population_ec_tag.insert(im.data.get('general_population_ec_tag', []))
+                except: print(f"no General Population EC Tag Data in {im.filepath}")
+
             gp_graph = graphs.GeneralPopulationGraph(self.graph_general_population_hour, self.graph_general_population_15min,
                                                      self.graph_general_population_ec_tag, general_population_total,
                                                      general_population_ec_tag)
@@ -164,12 +169,22 @@ class TestGraphs(unittest.TestCase):
 
             im = export.Import(self.filename)
             im.import_from_json()
-            contributions_data.insert(im.data['contributions'])
-            reverts_data.insert(im.data['reverts'])
-            ec_reverts_data.insert(im.data['ec_reverts'])
-            ec_tag_data.insert(im.data['ec_tag'])
-            general_population_total.insert(im.data['general_population_total'])
+            if self.graph_contributions:
+                try: contributions_data.insert(im.data['contributions'])
+                except: print(f"no Contributions Data in {im.filepath}")
+            if self.graph_reverts:
+                try: reverts_data.insert(im.data['reverts'])
+                except: print(f"no Reverts Data in {im.filepath}")
 
+            if self.graph_ec_reverts:
+                try: ec_reverts_data.insert(im.data['ec_reverts'])
+                except: print(f"no EC Reverts Data in {im.filepath}")
+
+            if self.graph_ec_tag:
+                try: ec_tag_data.insert(im.data['ec_tag'])
+                except: print(f"no EC Tag Data in {im.filepath}")
+
+            general_population_total.insert(im.data['general_population_total'])
             graph = graphs.Graphs(self.graph_contributions, self.graph_reverts, self.graph_ec_reverts, self.graph_ec_tag,
                                   contributions_data, reverts_data, ec_reverts_data, ec_tag_data,
                                   general_population_total)
