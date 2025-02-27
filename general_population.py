@@ -96,14 +96,14 @@ class GeneralPopulation:
         RETURN 
             SUM(CASE WHEN u.pro_palestine is not NULL THEN 1 ELSE 0 END) AS num_pro_palestine,
             SUM(CASE WHEN u.pro_israel is not NULL THEN 1 ELSE 0 END) AS num_pro_israel,
-            count(u.username) AS total
+            count(u.username) AS neutral
         """
 
         with self.driver.session() as session:
             result = session.run(query, months=months, pre_months=months - 1)
             for record in result:
                 self.ec_time_data.pro_palestine.append(record['num_pro_palestine'])
-                self.ec_time_data.pro_israel(record['num_pro_israel'])
+                self.ec_time_data.pro_israel.append(record['num_pro_israel'])
                 self.ec_time_data.neutral.append(record['neutral'])
 
     def run_query_final(self):
@@ -118,18 +118,19 @@ class GeneralPopulation:
         RETURN 
             SUM(CASE WHEN u.pro_palestine is not NULL THEN 1 ELSE 0 END) AS num_pro_palestine,
             SUM(CASE WHEN u.pro_israel is not NULL THEN 1 ELSE 0 END) AS num_pro_israel,
-            count(u.username) AS total
+            count(u.username) AS neutral
         """
 
         with self.driver.session() as session:
             result = session.run(query)
             for record in result:
                 self.ec_time_data.pro_palestine.append(record['num_pro_palestine'])
-                self.ec_time_data.pro_israel(record['num_pro_israel'])
+                self.ec_time_data.pro_israel.append(record['num_pro_israel'])
+                # actually, this is total and not neutral but it need to fit the class
                 self.ec_time_data.neutral.append(record['neutral'])
 
     def general_population_ec_tag(self):
-        for month in range(1, 13):
+        for month in range(2, 13):
             self.run_query(month)
         self.run_query_final()
 

@@ -114,8 +114,8 @@ if __name__ == '__main__':
 
             im = export.Import(filename)
             im.import_from_json()
-            general_population_total.insert(im.data['general_population_total'])
-            general_population_ec_tag.insert(im.data['general_population_ec_tag'])
+            general_population_total.insert(im.data.get('general_population_total', []))
+            general_population_ec_tag.insert(im.data.get('general_population_ec_tag', []))
             gp_graph = graphs.GeneralPopulationGraph(graph_general_population_hour, graph_general_population_15min,
                                                      graph_general_population_ec_tag, general_population_total, general_population_ec_tag)
             gp_graph.routine()

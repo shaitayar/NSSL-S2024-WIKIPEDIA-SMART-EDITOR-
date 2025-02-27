@@ -37,8 +37,8 @@
         },
         "general_population": {
             "uri": "bolt://localhost:7687",
-            "username": "generalPopulation",
-            "password": "12345678"
+            "username": "neo4j",
+            "password": "87654321"
         },
         "project": {
             "uri": "bolt://localhost:7687",

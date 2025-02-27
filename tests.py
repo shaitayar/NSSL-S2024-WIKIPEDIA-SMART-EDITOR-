@@ -9,34 +9,68 @@ from neo4j import GraphDatabase
 import general
 import graphs
 
-import subprocess
-import sys
 
 def connect_to_neo4j(uri, username, password):
     return GraphDatabase.driver(uri, auth=(username, password))
 
 
-uri = "bolt://localhost:7687"
-username = "neo4j"
-password = "87654321"
+class TestGeneralStuff(unittest.TestCase):
+    def setUp(self) -> None:
+        self.filename = "test_file_name"
+
+    # test if can read from a file
+    def test_read_import_file(self):
+        ex = export.Export(self.filename)
+        ex.export_to_json("world!", "hello")
+
+        im = export.Import(self.filename)
+        im.import_from_json()
+        data = im.data.get("hello", [])
+        self.assertEqual(data, "world!")
+
+    def test_export_multiple_times(self):
+        ex1 = export.Export()
+        ex1.export_to_json("world!", "Hello")
+
+        ex2 = export.Export()
+        ex2.export_to_json("olam!", "Shalom")
+
+        ex3 = export.Export()
+        ex3.export_to_json("mundo!", "Hola")
 
 
-#test if all measurements are correct
+        im = export.Import("")
+        im.import_from_json()
+        data = im.data.get("Hello", [])
+        self.assertEqual(data, "world!")
+
+        data = im.data.get("Shalom", [])
+        self.assertEqual(data, "olam!")
+
+        data = im.data.get("Hola", [])
+        self.assertEqual(data, "mundo!")
+
+
+# test if all measurements are correct
 class TestMeasurements(unittest.TestCase):
     def setUp(self) -> None:
-        self.driver = connect_to_neo4j(uri, username, password)
         with open("config.json", 'r', encoding='utf-8') as f:
             config = json.load(f)
+        config_neo = config['neo4j']['measurements']
         self.kernel_users = config['kernel']['users']
+        self.driver = connect_to_neo4j(config_neo['uri'], config_neo['username'], config_neo['password'])
+
         self.measurement = measurements.DescryptiveAnalytics(self.driver, self.kernel_users)
 
 
-#test if general population stats are correct
+
+# test if general population stats are correct
 class TestGeneralPopulation(unittest.TestCase):
     def setUp(self) -> None:
-        self.driver = connect_to_neo4j(uri, username, password)
         with open("config.json", 'r', encoding='utf-8') as f:
             config = json.load(f)
+        config_neo = config['neo4j']['general_population']
+        self.driver = connect_to_neo4j(config_neo['uri'], config_neo['username'], config_neo['password'])
         self.kernel_users = config['kernel']['users']
         self.kernel_pages = config['kernel']['pages']
         self.months_start = config['duration']['months_start']
@@ -49,37 +83,50 @@ class TestGeneralPopulation(unittest.TestCase):
         self.classify = classify.Classify(self.driver, self.project_palestine_users, self.project_israel_users, self.palestine_userbox, self.israel_userbox)
         self.general_population = general_population.GeneralPopulation(self.driver, self.kernel_users, self.kernel_pages, self.months_start, self.days, self.classify)
 
-
+    # test import and export
     def test_export_import_data(self):
+        general_population_total = general.TimeData()
+        general_population_ec_tag = general.TimeData()
+
         self.general_population.general_population_graph_data()
+        self.general_population.general_population_ec_tag()
         ex = export.Export()
         ex.export_to_json(self.general_population.time_data.to_dict(), "general_population_total")
-
+        ex.export_to_json(self.general_population.ec_time_data.to_dict(), "general_population_ec_tag")
         im = export.Import(self.filename)
         im.import_from_json()
 
-        pro_palestine_data = im.data.get('pro_palestine', [])
-        pro_israel_data = im.data.get('pro_israel', [])
-        neutral_data = im.data.get('neutral', [])
-        time_intervals = im.data.get('time', [])
-        self.assertNotEqual(time_intervals, self.general_population.time_data.time)
-        self.assertNotEqual(pro_palestine_data, self.general_population.time_data.pro_palestine)
-        self.assertNotEqual(pro_israel_data, self.general_population.time_data.pro_israel)
-        self.assertNotEqual(neutral_data, self.general_population.time_data.neutral)
+        general_population_total.insert(im.data.get('general_population_total', []))
+        general_population_ec_tag.insert(im.data.get('general_population_ec_tag', []))
+
+        self.assertEqual(general_population_total.time, self.general_population.time_data.time)
+        self.assertEqual(general_population_total.pro_palestine, self.general_population.time_data.pro_palestine)
+        self.assertEqual(general_population_total.pro_israel, self.general_population.time_data.pro_israel)
+        self.assertEqual(general_population_total.neutral, self.general_population.time_data.neutral)
+
+        self.assertEqual(general_population_ec_tag.time, self.general_population.ec_time_data.time)
+        self.assertEqual(general_population_ec_tag.pro_palestine, self.general_population.ec_time_data.pro_palestine)
+        self.assertEqual(general_population_ec_tag.pro_israel, self.general_population.ec_time_data.pro_israel)
+        self.assertEqual(general_population_ec_tag.neutral, self.general_population.ec_time_data.neutral)
 
         self.driver.close()
-
-    def test_export_import_ec_tag(self):
-        pass
+    #test routine
     def test_routine(self):
-        #self.general_population.routine()
         pass
+        self.general_population.routine()
 
-#test if expansions data is correct
+    #test routine if neo4j is down
+    def test_routine_no_neo4j(self):
+        pass
+        self.general_population.routine()
+
+
+
+# test if expansions data is correct
 class TestExpansions(unittest.TestCase):
     pass
 
-#test if data imported correctly
+# test graphs class
 class TestGraphs(unittest.TestCase):
     def setUp(self) -> None:
         with open("config.json", 'r', encoding='utf-8') as f:
@@ -128,6 +175,17 @@ class TestGraphs(unittest.TestCase):
                                   general_population_total)
             graph.routine()
 
+    #test what happens if the user tries to plot a graph without data in the json file
+    def test_graph_no_data(self):
+        reverts_data = general.Data()
+        im = export.Import(self.filename)
+        im.import_from_json()
+        reverts_data.insert(im.data['reverts'])
+
+        graph = graphs.Graphs(graph_contributions=False, graph_reverts=True, graph_ec_reverts=False, graph_ec_tag=False,
+                              contributions=None, reverts=reverts_data, ec_reverts=None, data_ec_tag=None,
+                              general_population_data=None)
+        graph.routine()
 
 if __name__ == "__main__":
     unittest.main()
