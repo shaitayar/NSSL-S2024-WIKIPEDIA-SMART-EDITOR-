@@ -9,7 +9,7 @@
       "general_population_hour": true,
       "general_population_15min": true,
       "general_population_ec_tag": true,
-      "contributions": false,
+      "contributions": true,
       "reverts": false,
       "ec_reverts": false,
       "ec_tag": false

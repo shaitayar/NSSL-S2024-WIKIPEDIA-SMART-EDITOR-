@@ -37,6 +37,7 @@ class Import:
     def __init__(self, filename):
         self.filename = filename
         self.data = []
+        self.filepath = ""
 
     def get_latest_json(self):
         json_files = glob.glob(os.path.join("exports", "export_*.json"))
@@ -46,13 +47,13 @@ class Import:
 
     def import_from_json(self):
         if(self.filename != ""):
-            filepath = os.path.join("exports", self.filename)
+            self.filepath = os.path.join("exports", self.filename)
         else:
-            filepath = self.get_latest_json()
+            self.filepath = self.get_latest_json()
 
-        with open(filepath, "r") as file:
+        with open(self.filepath, "r") as file:
             try:
                 self.data = json.load(file)
             except json.JSONDecodeError:
-                print(f"Error Loading {filepath} data")
+                print(f"Error Loading {self.filepath} data")
 
