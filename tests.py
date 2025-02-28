@@ -195,8 +195,11 @@ class TestGraphs(unittest.TestCase):
         reverts_data = general.Data()
         im = export.Import(self.filename)
         im.import_from_json()
-        reverts_data.insert(im.data['reverts'])
-
+        if self.graph_reverts:
+            try:
+                reverts_data.insert(im.data['reverts'])
+            except:
+                print(f"no Reverts Data in {im.filepath}")
         graph = graphs.Graphs(graph_contributions=False, graph_reverts=True, graph_ec_reverts=False, graph_ec_tag=False,
                               contributions=None, reverts=reverts_data, ec_reverts=None, data_ec_tag=None,
                               general_population_data=None)

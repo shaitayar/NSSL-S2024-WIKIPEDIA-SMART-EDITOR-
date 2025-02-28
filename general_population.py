@@ -35,7 +35,7 @@ class GeneralPopulation:
         self.classify.classify_editor()
         self.classify.classify_editor_by_name()
         self.classify.classify_editor_by_palestine_project()
-
+        self.classify.classify_editor_by_israel_project()
         self.general_population_graph_data()
         self.general_population_ec_tag()
 

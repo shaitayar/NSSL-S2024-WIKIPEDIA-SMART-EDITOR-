@@ -485,10 +485,6 @@ class Contributions:
         print(f"\n------ palestine mean: f{self.iterations_data.ps_mean(self.iteration)}")
 
         while True:
-            #if check_in_general(self.iterations_data.ps_mean(self.iteration), general_population.ps_mean,
-            #                    general_population.ps_variance):
-            #    print("In general population limits, stopping.")
-            #    break
             self.iteration += 1
             users2 = []
 

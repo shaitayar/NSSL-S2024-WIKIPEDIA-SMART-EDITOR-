@@ -6,11 +6,15 @@ import measurements
 import classify
 import graphs
 import export
+import expansion
+import ec_tag
+import amoeba
 import json
 from neo4j import GraphDatabase
-
+import ec_tag
 import subprocess
 import sys
+
 
 def install(package):
     subprocess.check_call([sys.executable, "-m", "pip", "install", package])
@@ -23,12 +27,6 @@ if __name__ == '__main__':
     #Load configuration
     with open("config.json", "r") as f:
         config = json.load(f)
-
-    #install packages to environment
-    packages = ["neo4j", "requests", "numpy", "pandas", "seaborn", "logging", "matplotlib"]
-    for package in packages:
-        install(package)
-
 
     #Reading from configuration file
     kernel_users = config['kernel']['users']
@@ -62,6 +60,13 @@ if __name__ == '__main__':
 
     filename = config['graph_input_filename']
 
+    is_expansions_with_grades = config['Amoeba_Results']['is_grade']
+    grades = config['Amoeba_Results']['grades']
+    purne = config['Amoeba_Results']['prune']
+
+    export_to_amoeba = True
+    #Todo: add export to amoeba in config
+
     if (is_measurement):
         config_neo = config['neo4j']['measurements']
         driver = connect_to_neo4j(config_neo['uri'], config_neo['username'], config_neo['password'])
@@ -88,19 +93,12 @@ if __name__ == '__main__':
         ex.export_to_json(general_population.ec_time_data, "general_population_ec_tag")
         driver.close()
 
-    if (is_expansions):
+    if (expansion):
         config_neo = config['neo4j']['expansions']
         driver = connect_to_neo4j(config_neo['uri'], config_neo['username'], config_neo['password'])
         classify = classify.Classify(driver, project_palestine_users, project_israel_users, palestine_userbox, israel_userbox)
-        contribution = contributions.Contributions(driver, max_iterations_contribs, kernel_users, kernel_pages, months_start, months_end, classify)
-        revert = reverts.RevertsEC(driver, max_iterations_reverts, kernel_users, kernel_pages, months_start, months_end, classify)
-
-        ex = export.Export()
-        ex.export_to_json(contribution.iterations_data, "contributions")
-        ex.export_to_json(revert.iterations_data, "ec_reverts")
-        #todo: export ec tag
-
-        #Todo: add grades and cutoff
+        expansion = expansion.Expansion(driver, max_iterations_contribs, max_iterations_reverts, kernel_users, kernel_pages, months_start, months_end, classify, grades, prune, is_expansions_with_grades)
+        expansion.routine()
 
         #Todo: add final user list
         driver.close()
@@ -157,6 +155,11 @@ if __name__ == '__main__':
             graph.routine()
 
 
+    if(export_to_amoeba):
+        config_neo = config['neo4j']['expansions']
+        driver = connect_to_neo4j(config_neo['uri'], config_neo['username'], config_neo['password'])
+        amoeba = amoeba.Amoeba(driver)
+        amoeba.export_users_to_amoeba()
 
 
 
