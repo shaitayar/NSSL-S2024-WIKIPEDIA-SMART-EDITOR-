@@ -20,6 +20,15 @@
         "days_for_recent_changes": 4
     },
     "graph_input_filename":"",
+    "Amoeba_Results" : {
+      "is_grade": false,
+      "grades": [
+        0.4,
+        0.5,
+        0
+      ],
+      "prune": 0.5
+    },
     "logging": {
         "filename": "app.log",
         "filemode": "a",
