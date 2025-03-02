@@ -29,8 +29,7 @@ class ECTag:
         """
 
         with self.driver.session() as session:
-            result = session.run(query, months=months, pre_months=months - 1,
-                                 contrib_iteration=contrib_iteration, revert_iteration=revert_iteration)
+            result = session.run(query, months=months, pre_months=months - 1)
             for record in result:
                 self.time_data.pro_palestine.append(record['num_pro_palestine'])
                 self.time_data.pro_israel.append(record['num_pro_israel'])
@@ -60,7 +59,7 @@ class ECTag:
         """
 
         with self.driver.session() as session:
-            result = session.run(query, contrib_iteration=contrib_iteration, revert_iteration=revert_iteration)
+            result = session.run(query)
             for record in result:
                 self.time_data.pro_palestine.append(record['num_pro_palestine'])
                 self.time_data.pro_israel.append(record['num_pro_israel'])
