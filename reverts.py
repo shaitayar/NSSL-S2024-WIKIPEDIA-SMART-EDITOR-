@@ -16,8 +16,6 @@ class Reverts:
         self.iterations_data = IterationsData()
         self.classify = classify
 
-
-
     def update_reverts(self):
         self.classify.classify_editor()
         self.classify.classify_editor_by_name()
@@ -520,7 +518,57 @@ class RevertsEC(Reverts):
 
 
 
-    def routine(self):
+    def routine_one(self):
+        #print("\n---------- EC Reverts to Users ----------\n")
+        # insert kernel
+        if self.iteration == 0:
+            self.insert_users()
+            self.process_user_data(self.kernel_users, 0)
+            self.update_reverts()
+
+            print(f"\n------ finished iteration {self.iteration}------------\n")
+            print(f"\n------ palestine mean: f{self.iterations_data.ps_mean(self.iteration)}")
+
+            # get kernel reverts
+            self.iteration += 1
+            self.process_user_reverts_EC_Pages_only(self.kernel_users)
+
+            curr_users = self.get_users_reverted_in_iteration(self.iteration)
+            self.process_user_data(curr_users, 1)
+
+            self.update_reverts()
+
+            print(f"\n------ finished iteration {self.iteration}------------\n")
+            print(f"\n------ palestine mean: f{self.iterations_data.ps_mean(self.iteration)}")
+
+        else:
+            users_before = self.get_users_reverted_in_iteration(self.iteration - 1)
+
+            if len(users_before) == 0:
+                print("No More Users, stopping.")
+                return
+
+            self.process_user_reverts_EC_Pages_only(users_before)
+            users_current = self.get_users_reverted_in_iteration(self.iteration)
+
+            if len(users_current) == 0:
+                print("Not Added Users, stopping.")
+                return
+
+            self.process_user_data(users_current, 1)
+
+            self.update_reverts()
+
+            print(f"\n------ finished iteration {self.iteration}------------\n")
+
+            print(f"\n------ palestine mean: f{self.iterations_data.ps_mean(self.iteration)}")
+            print(f"\n------ israel mean: f{self.iterations_data.il_mean(self.iteration)}")
+
+            if self.iteration >= self.max_iterations:
+                print("Max iterations reached, stopping.")
+
+
+    def routine_all(self):
         print("\n---------- EC Reverts to Users ----------\n")
         # insert kernel
         self.insert_users()
@@ -571,4 +619,4 @@ class RevertsEC(Reverts):
             print(f"\n------ palestine mean: f{self.iterations_data.ps_mean(self.iteration)}")
             print(f"\n------ israel mean: f{self.iterations_data.il_mean(self.iteration)}")
 
-        self.iterations_data.print_all()
+        #self.iterations_data.print_all()

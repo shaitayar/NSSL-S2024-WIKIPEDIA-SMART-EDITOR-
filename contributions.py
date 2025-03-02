@@ -465,7 +465,7 @@ class Contributions:
             self.add_total_contribs_weight(username["user"], count_all)
             i += 1
 
-    def routine(self):
+    def routine_all(self):
         self.process_user_contributions(self.kernel_users)
 
         all_users = []
@@ -523,4 +523,57 @@ class Contributions:
 
             print(f"\n------ palestine mean: f{self.iterations_data.ps_mean(self.iteration)}")
 
-        self.iterations_data.print_all()
+        #self.iterations_data.print_all()
+
+    def routine_one(self):
+        if self.iteration == 0:
+            self.process_user_contributions(self.kernel_users)
+
+            all_users = []
+            all_users = self.get_all_users()
+            self.process_user_data(all_users)
+
+            # update iterations data
+            self.update()
+
+            all_pages = self.get_all_pages_iter()
+            temp2 = self.remove_duplicates_pages(all_pages)
+            self.get_page_protection_level_data(temp2)
+
+            print(f"\n------ finished iteration {self.iteration}------------\n")
+            print(f"\n------ palestine mean: f{self.iterations_data.ps_mean(self.iteration)}")
+
+        else:
+            users2 = []
+            last_iterate_pages = self.get_all_ec_pages_iter()
+
+            if self.iteration == 1:
+                self.pages_to_users_no_limit(last_iterate_pages + self.kernel_pages, users2)
+            else:
+                self.pages_to_users_no_limit(last_iterate_pages, users2)
+
+            temp = self.remove_duplicates(users2)
+
+            if len(temp) == 0:
+                print("No More Users, stopping.")
+                return
+
+            self.process_user_contributions(temp)
+
+            self.process_user_data(temp)
+
+            all_pages = self.get_all_pages_iter()  # get all pages
+            self.get_page_protection_level_data(all_pages)  # add tag ec or not ec
+            protected_pages = self.get_all_ec_pages_iter()  # get only ec
+
+            if len(protected_pages) == 0:
+                print("No More EC Pages, stopping.")
+                return
+
+            self.update()
+
+            print(f"\n------ finished iteration {self.iteration}------------\n")
+            print(f"\n------ palestine mean: f{self.iterations_data.ps_mean(self.iteration)}")
+
+            if self.iteration >= self.max_iterations:
+                print("Max iterations reached, stopping.")

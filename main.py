@@ -7,7 +7,6 @@ import classify
 import graphs
 import export
 import expansion
-import ec_tag
 import amoeba
 import json
 from neo4j import GraphDatabase
