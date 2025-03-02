@@ -5,11 +5,12 @@ from datetime import datetime
 
 
 class Grades:
-    def __init__(self, driver, grades):
+    def __init__(self, driver, grades, prune):
         self.driver = driver
         self.grade1 = grades[1]
         self.grade2 = grades[2]
         self.grade3 = grades[3]
+        self.prune = prune
 
     def calculate_months_difference(self, start_date, end_date):
         return (end_date.year - start_date.year) * 12 + (end_date.month - start_date.month)
@@ -71,8 +72,8 @@ class Grades:
                 session.run(
                     """
                     MERGE (u:User {username: $username})
-                    SET u.grade = $grade
-                    """, username=user['username'], grade=user['grade'])
+                    SET u.grade = $grade, u.is_pruned = $is_pruned
+                    """, username=user['username'], grade=user['grade'], is_pruned = user['grade']<self.prune)
 
 
 
