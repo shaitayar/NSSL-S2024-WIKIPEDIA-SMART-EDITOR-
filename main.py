@@ -61,7 +61,7 @@ if __name__ == '__main__':
 
     is_expansions_with_grades = config['Amoeba_Results']['is_grade']
     grades = config['Amoeba_Results']['grades']
-    purne = config['Amoeba_Results']['prune']
+    prune = config['Amoeba_Results']['prune']
 
     export_to_amoeba = True
     #Todo: add export to amoeba in config
