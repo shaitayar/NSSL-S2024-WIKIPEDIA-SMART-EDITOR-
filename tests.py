@@ -2,6 +2,7 @@ import os
 import unittest
 import general_population
 import classify
+import expansion
 import export
 import json
 import measurements
@@ -124,7 +125,38 @@ class TestGeneralPopulation(unittest.TestCase):
 
 # test if expansions data is correct
 class TestExpansions(unittest.TestCase):
-    pass
+    def setUp(self) -> None:
+        with open("config.json", 'r', encoding='utf-8') as f:
+            config = json.load(f)
+        config_neo = config['neo4j']['expansions']
+        self.driver = connect_to_neo4j(config_neo['uri'], config_neo['username'], config_neo['password'])
+
+        self.kernel_users = config['kernel']['users']
+        self.kernel_pages = config['kernel']['pages']
+        self.months_start = config['duration']['months_start']
+        self.months_end = config['duration']['months_end']
+        self.max_iterations_contribs = config['max_iterations']['contribs']
+        self.max_iterations_reverts = config['max_iterations']['reverts']
+        self.days = config['duration']['days_for_recent_changes']
+
+        self.project_palestine_users = config['wikiProject']['palestine']
+        self.project_israel_users = config['wikiProject']['israel']
+        self.palestine_userbox = config['userboxes']['pro_palestine']
+        self.israel_userbox = config['userboxes']['pro_israel']
+
+
+        self.is_expansions_with_grades = config['Amoeba_Results']['is_grade']
+        self.grades = config['Amoeba_Results']['grades']
+        self.prune = config['Amoeba_Results']['prune']
+    def test_no_grades(self):
+        classify_ = classify.Classify(self.driver, self.project_palestine_users, self.project_israel_users, self.palestine_userbox, self.israel_userbox)
+        expansion_ = expansion.Expansion(self.driver, self.max_iterations_contribs, self.max_iterations_reverts, self.kernel_users, self.kernel_pages, self.months_start, self.months_end, classify_, self.grades, self.prune, False)
+        expansion_.routine()
+
+    def test_grades(self):
+        classify_ = classify.Classify(self.driver, self.project_palestine_users, self.project_israel_users, self.palestine_userbox, self.israel_userbox)
+        expansion_ = expansion.Expansion(self.driver, self.max_iterations_contribs, self.max_iterations_reverts, self.kernel_users, self.kernel_pages, self.months_start, self.months_end, classify_, self.grades, self.prune, True)
+        expansion_.routine()
 
 # test graphs class
 class TestGraphs(unittest.TestCase):

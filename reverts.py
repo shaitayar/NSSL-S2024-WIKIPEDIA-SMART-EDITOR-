@@ -16,12 +16,12 @@ class Reverts:
         self.iterations_data = IterationsData()
         self.classify = classify
 
-    def update_reverts(self):
+    def update_reverts(self, is_prune=False):
         self.classify.classify_editor()
         self.classify.classify_editor_by_name()
         self.classify.classify_editor_by_palestine_project()
 
-        self.calculate_data_reverts()
+        self.calculate_data_reverts(is_prune)
 
     def insert_users(self):
         with self.driver.session() as session:
@@ -72,28 +72,33 @@ class Reverts:
 
         return metadata
 
-    def calculate_data_reverts(self):
+    def calculate_data_reverts(self, is_prune):
         with self.driver.session() as session:
+            iteration_tag_condition = f"n.revert_iteration = {self.iteration}"
             pro_palestine_tag_condition = "n.pro_palestine IS NOT NULL"
             pro_israel_tag_condition = "n.pro_israel IS NOT NULL"
+            prune_condition = "n.is_prune = false"
+
+            if is_prune:
+                iteration_tag_condition += f" AND {prune_condition}"
 
             result = session.run(f"""
             MATCH (n:User)
-            WHERE {pro_palestine_tag_condition} AND n.revert_iteration = {self.iteration}
+            WHERE {pro_palestine_tag_condition} AND {iteration_tag_condition}
             RETURN count(n) as pro_palestine_count
             """)
             pro_palestine_count = result.single()['pro_palestine_count']
 
             result = session.run(f"""
             MATCH (n:User)
-            WHERE {pro_israel_tag_condition} AND n.revert_iteration = {self.iteration}
+            WHERE {pro_israel_tag_condition} AND {iteration_tag_condition}
             RETURN count(n) as pro_israel_count
             """)
             pro_israel_count = result.single()['pro_israel_count']
 
             result = session.run(f"""
             MATCH (n:User)
-            WHERE n.revert_iteration = {self.iteration}
+            WHERE {iteration_tag_condition}
             RETURN count(n) as total_count
             """)
             total_count = result.single()['total_count']
@@ -347,6 +352,17 @@ class Reverts:
             )
             return result.data()
 
+    def get_users_reverted_in_iteration_prune(self, iteration):
+        with self.driver.session() as session:
+            result = session.run(
+                f"""
+                MATCH (n:User) 
+                WHERE n.revert_iteration = $iteration
+                AND n.is_prune = false
+                RETURN n.username AS user
+                """, iteration=iteration
+            )
+            return result.data()
     def routine(self):
         print("\n---------- Reverts to Users ----------\n")
         # insert kernel
@@ -529,20 +545,23 @@ class RevertsEC(Reverts):
             print(f"\n------ finished iteration {self.iteration}------------\n")
             print(f"\n------ palestine mean: f{self.iterations_data.ps_mean(self.iteration)}")
 
-            # get kernel reverts
-            self.iteration += 1
-            self.process_user_reverts_EC_Pages_only(self.kernel_users)
+            #self.iteration += 1
+            #self.process_user_reverts_EC_Pages_only(self.kernel_users)
 
-            curr_users = self.get_users_reverted_in_iteration(self.iteration)
-            self.process_user_data(curr_users, 1)
+            #curr_users = self.get_users_reverted_in_iteration(self.iteration)
+            #self.process_user_data(curr_users, 1)
 
-            self.update_reverts()
+            #self.update_reverts()
 
-            print(f"\n------ finished iteration {self.iteration}------------\n")
-            print(f"\n------ palestine mean: f{self.iterations_data.ps_mean(self.iteration)}")
+            #print(f"\n------ finished iteration {self.iteration}------------\n")
+            #print(f"\n------ palestine mean: f{self.iterations_data.ps_mean(self.iteration)}")
 
         else:
-            users_before = self.get_users_reverted_in_iteration(self.iteration - 1)
+            # dont prune kernel, dont prune pro israelis
+            if self.iteration != 1 and self.iteration % 2 == 1:
+                users_before = self.get_users_reverted_in_iteration_prune(self.iteration - 1)
+            else:
+                users_before = self.get_users_reverted_in_iteration(self.iteration - 1)
 
             if len(users_before) == 0:
                 print("No More Users, stopping.")
@@ -557,7 +576,7 @@ class RevertsEC(Reverts):
 
             self.process_user_data(users_current, 1)
 
-            self.update_reverts()
+            self.update_reverts(True)
 
             print(f"\n------ finished iteration {self.iteration}------------\n")
 

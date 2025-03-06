@@ -15,12 +15,16 @@ class Contributions:
         self.iterations_data = IterationsData()
         self.classify = classify
 
-    def calculate_data(self):
+    def calculate_data(self, is_prune):
         with self.driver.session() as session:
             iteration_tag_condition = "n.edit_iteration IS NOT NULL"
 
             pro_palestine_tag_condition = "n.pro_palestine IS NOT NULL"
             pro_israel_tag_condition = "n.pro_israel IS NOT NULL"
+            prune_condition = "n.is_prune = false"
+
+            if is_prune:
+                iteration_tag_condition += f" AND {prune_condition}"
 
             result = session.run(f"""
             MATCH (n:User)
@@ -47,11 +51,11 @@ class Contributions:
             self.iterations_data.update(pro_palestine_count, pro_israel_count, total_count)
 
 
-    def update(self):
+    def update(self, is_grade = False):
         self.classify.classify_editor()
         self.classify.classify_editor_by_name()
         self.classify.classify_editor_by_palestine_project()
-        self.calculate_data()
+        self.calculate_data(is_grade)
 
     def remove_duplicates_pages(self, arr):
         seen_titles = set()
@@ -73,7 +77,7 @@ class Contributions:
                 unique_dicts.append(d)
         return unique_dicts
 
-    def get_all_ec_pages_iter(self):
+    def get_all_ec_pages_iter(self, iteration):
         with self.driver.session() as session:
             result = session.run(
                 """
@@ -81,7 +85,7 @@ class Contributions:
                 WHERE p.edit_protection = 'extendedconfirmed'
                 AND p.edit_iteration = $iteration
                 RETURN p.title AS title
-                """, iteration= self.iteration
+                """, iteration= iteration
             )
             return result.data()
 
@@ -478,7 +482,7 @@ class Contributions:
         all_pages = self.get_all_pages_iter()
         temp2 = self.remove_duplicates_pages(all_pages)
         self.get_page_protection_level_data(temp2)
-        protected_pages = self.get_all_ec_pages_iter()
+        protected_pages = self.get_all_ec_pages_iter(self.iteration)
 
         last_iterate_pages = protected_pages
         print(f"\n------ finished iteration {self.iteration}------------\n")
@@ -506,7 +510,7 @@ class Contributions:
 
             all_pages = self.get_all_pages_iter()  # get all pages
             self.get_page_protection_level_data(all_pages)  # add tag ec or not ec
-            protected_pages = self.get_all_ec_pages_iter()  # get only ec
+            protected_pages = self.get_all_ec_pages_iter(self.iteration)  # get only ec
 
             if len(protected_pages) == 0:
                 print("No More EC Pages, stopping.")
@@ -531,6 +535,7 @@ class Contributions:
 
             all_users = []
             all_users = self.get_all_users()
+
             self.process_user_data(all_users)
 
             # update iterations data
@@ -545,7 +550,7 @@ class Contributions:
 
         else:
             users2 = []
-            last_iterate_pages = self.get_all_ec_pages_iter()
+            last_iterate_pages = self.get_all_ec_pages_iter(self.iteration-1)
 
             if self.iteration == 1:
                 self.pages_to_users_no_limit(last_iterate_pages + self.kernel_pages, users2)
@@ -564,13 +569,13 @@ class Contributions:
 
             all_pages = self.get_all_pages_iter()  # get all pages
             self.get_page_protection_level_data(all_pages)  # add tag ec or not ec
-            protected_pages = self.get_all_ec_pages_iter()  # get only ec
+            protected_pages = self.get_all_ec_pages_iter(self.iteration)  # get only ec
 
             if len(protected_pages) == 0:
                 print("No More EC Pages, stopping.")
                 return
 
-            self.update()
+            self.update(True)
 
             print(f"\n------ finished iteration {self.iteration}------------\n")
             print(f"\n------ palestine mean: f{self.iterations_data.ps_mean(self.iteration)}")
