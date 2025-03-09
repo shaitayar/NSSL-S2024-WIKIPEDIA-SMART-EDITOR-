@@ -150,7 +150,7 @@ class TestExpansions(unittest.TestCase):
         self.prune = config['Amoeba_Results']['prune']
     def test_no_grades(self):
         classify_ = classify.Classify(self.driver, self.project_palestine_users, self.project_israel_users, self.palestine_userbox, self.israel_userbox)
-        expansion_ = expansion.Expansion(self.driver, self.max_iterations_contribs, self.max_iterations_reverts, self.kernel_users, self.kernel_pages, self.months_start, self.months_end, classify_, self.grades, self.prune, False)
+        expansion_ = expansion.Expansion(self.driver, self.max_iterations_contribs, self.max_iterations_reverts, self.kernel_users, self.kernel_pages, self.months_start, self.months_end, classify_, self.prune, self.grades, False)
         expansion_.routine()
 
     def test_grades(self):
@@ -198,25 +198,26 @@ class TestGraphs(unittest.TestCase):
             ec_reverts_data = general.Data()
             ec_tag_data = general.TimeData()
             general_population_total = general.TimeData()
-
             im = export.Import(self.filename)
             im.import_from_json()
             if self.graph_contributions:
-                try: contributions_data.insert(im.data['contributions'])
+                try: contributions_data.insert(im.data.get('contributions', []))
                 except: print(f"no Contributions Data in {im.filepath}")
             if self.graph_reverts:
-                try: reverts_data.insert(im.data['reverts'])
+                try: reverts_data.insert(im.data.get('reverts', []))
                 except: print(f"no Reverts Data in {im.filepath}")
 
             if self.graph_ec_reverts:
-                try: ec_reverts_data.insert(im.data['ec_reverts'])
+                try: ec_reverts_data.insert(im.data.get('ec_reverts', []))
                 except: print(f"no EC Reverts Data in {im.filepath}")
 
             if self.graph_ec_tag:
-                try: ec_tag_data.insert(im.data['ec_tag'])
+                try: ec_tag_data.insert(im.data.get('ec_tag', []))
                 except: print(f"no EC Tag Data in {im.filepath}")
 
-            general_population_total.insert(im.data['general_population_total'])
+            im_general = export.Import("export_20250227_1631.json")
+            im_general.import_from_json()
+            general_population_total.insert(im_general.data.get('general_population_total', []))
             graph = graphs.Graphs(self.graph_contributions, self.graph_reverts, self.graph_ec_reverts, self.graph_ec_tag,
                                   contributions_data, reverts_data, ec_reverts_data, ec_tag_data,
                                   general_population_total)

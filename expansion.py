@@ -18,6 +18,8 @@ class Expansion:
         self.reverts = reverts.RevertsEC(driver, max_iterations_reverts, kernel_users, kernel_pages, months_start, months_end, classify)
         self.classify = classify
         self.ec_tag = ec_tag.ECTag(driver)
+        if not grades:
+            grades = [0, 0, 0]
         self.grades = grade.Grades(self.driver, grades, prune)
         self.prune = prune
         self.is_grade = is_grade
@@ -53,9 +55,9 @@ class Expansion:
         self.ec_tag.routine(True)
         self.export_final_users_to_csv(iterations_contribs-1, iteration_reverts-1)
         ex = export.Export()
-        ex.export_to_json(self.contribution.iterations_data, "contributions_grades")
-        ex.export_to_json(self.reverts.iterations_data, "ec_reverts_grades")
-        ex.export_to_json(self.ec_tag.time_data, "ec_tag_grades")
+        ex.export_to_json(self.contribution.iterations_data.to_dict(), "contributions_grades")
+        ex.export_to_json(self.reverts.iterations_data.to_dict(), "ec_reverts_grades")
+        ex.export_to_json(self.ec_tag.time_data.to_dict(), "ec_tag_grades")
 
 
 
@@ -63,9 +65,9 @@ class Expansion:
         self.contribution.routine_all()
         self.reverts.routine_all()
         self.ec_tag.routine(False)
-        self.ex.export_to_json(self.contribution.iterations_data, "contributions_no_grades")
-        self.ex.export_to_json(self.reverts.iterations_data, "ec_reverts_no_grades")
-        self.ex.export_to_json(self.ec_tag, "ec_tag_no_grades")
+        self.ex.export_to_json(self.contribution.iterations_data.to_dict(), "contributions_no_grades")
+        self.ex.export_to_json(self.reverts.iterations_data.to_dict(), "ec_reverts_no_grades")
+        self.ex.export_to_json(self.ec_tag.time_data.to_dict(), "ec_tag_no_grades")
 
     def routine(self):
         if self.is_grade:

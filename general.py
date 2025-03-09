@@ -24,6 +24,14 @@ class IterationsData:
         self.total_users.append(total_users)
         self.num_of_iterations += 1
 
+    def to_dict(self):
+        return {
+            'time': self.num_of_iterations,
+            'pro_palestine': self.num_palestinians,
+            'pro_israel': self.num_israelis,
+            'neutral': self.total_users
+        }
+
     def print_all(self):
         for i in range(0, self.num_of_iterations):
             print (f"\nIteration: {i} "
@@ -42,17 +50,25 @@ class Data:
         self.iterations = []
         self.pro_palestine = []
         self.pro_israel = []
-        self.total_users = []
+        self.neutral = []
 
     def __bool__(self):
-        return bool(self.iterations or self.pro_palestine or self.pro_israel or self.total_users)
+        return bool(self.iterations or self.pro_palestine or self.pro_israel or self.neutral)
 
     def insert(self, raw_data):
-        self.iterations = raw_data['iterations']
-        self.pro_palestine = raw_data['pro_palestine']
-        self.pro_israel = raw_data['pro_israel']
-        self.total_users = raw_data['total_users']
+        for i in range (raw_data.get('time', [])):
+            self.iterations.append(i)
+        self.pro_palestine = raw_data.get('pro_palestine', [])
+        self.pro_israel = raw_data.get('pro_israel', [])
+        self.neutral = raw_data.get('neutral', [])
 
+    def to_dict(self):
+        return {
+            'iterations': self.iterations,
+            'pro_palestine': self.pro_palestine,
+            'pro_israel': self.pro_israel,
+            'neutral': self.neutral
+        }
 
 class TimeData:
     def __init__(self):
@@ -67,10 +83,10 @@ class TimeData:
 
     def insert(self, raw_data):
         if raw_data:
-            self.time = raw_data['time']
-            self.pro_palestine = raw_data['pro_palestine']
-            self.pro_israel = raw_data['pro_israel']
-            self.neutral = raw_data['neutral']
+            self.time = raw_data.get('time', [])
+            self.pro_palestine = raw_data.get('pro_palestine', [])
+            self.pro_israel = raw_data.get('pro_israel', [])
+            self.neutral = raw_data.get('neutral', [])
 
     def to_dict(self):
         return {

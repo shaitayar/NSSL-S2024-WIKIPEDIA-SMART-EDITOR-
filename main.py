@@ -96,7 +96,7 @@ if __name__ == '__main__':
         config_neo = config['neo4j']['expansions']
         driver = connect_to_neo4j(config_neo['uri'], config_neo['username'], config_neo['password'])
         classify = classify.Classify(driver, project_palestine_users, project_israel_users, palestine_userbox, israel_userbox)
-        expansion = expansion.Expansion(driver, max_iterations_contribs, max_iterations_reverts, kernel_users, kernel_pages, months_start, months_end, classify, grades, prune, is_expansions_with_grades)
+        expansion = expansion.Expansion(driver, max_iterations_contribs, max_iterations_reverts, kernel_users, kernel_pages, months_start, months_end, classify, prune, grades, is_expansions_with_grades)
         expansion.routine()
 
         #Todo: add final user list
@@ -133,21 +133,21 @@ if __name__ == '__main__':
             im = export.Import(filename)
             im.import_from_json()
             if graph_contributions:
-                try: contributions_data.insert(im.data['contributions'])
+                try: contributions_data.insert(im.data.get('contributions', []))
                 except: print(f"no Contributions Data in {im.filepath}")
             if graph_reverts:
-                try: reverts_data.insert(im.data['reverts'])
+                try: reverts_data.insert(im.data.get('reverts', []))
                 except: print(f"no Reverts Data in {im.filepath}")
 
             if graph_ec_reverts:
-                try: ec_reverts_data.insert(im.data['ec_reverts'])
+                try: ec_reverts_data.insert(im.data.get('ec_reverts', []))
                 except: print(f"no EC Reverts Data in {im.filepath}")
 
             if graph_ec_tag:
-                try: ec_tag_data.insert(im.data['ec_tag'])
+                try: ec_tag_data.insert(im.data.get('ec_tag', []))
                 except: print(f"no EC Tag Data in {im.filepath}")
 
-            general_population_total.insert(im.data['general_population_total'])
+            general_population_total.insert(im.data.get('general_population_total', []))
 
             graph = graphs.Graphs(graph_contributions, graph_reverts, graph_ec_reverts, graph_ec_tag,
                                   contributions_data, reverts_data, ec_reverts_data, ec_tag_data, general_population_total)

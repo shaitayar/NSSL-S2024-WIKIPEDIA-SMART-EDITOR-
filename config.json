@@ -11,12 +11,12 @@
       "general_population_ec_tag": true,
       "contributions": true,
       "reverts": false,
-      "ec_reverts": false,
-      "ec_tag": false
+      "ec_reverts": true,
+      "ec_tag": true
     },
     "duration": {
         "months_start": 6,
-        "months_end": 7,
+        "months_end": 6.1,
         "days_for_recent_changes": 4
     },
     "graph_input_filename":"",
@@ -49,9 +49,9 @@
             "username": "neo4j",
             "password": "87654321"
         },
-        "project": {
+        "expansions": {
             "uri": "bolt://localhost:7687",
-            "username": "project",
+            "username": "neo4j",
             "password": "12345678"
         }
     },

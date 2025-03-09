@@ -7,9 +7,9 @@ from datetime import datetime
 class Grades:
     def __init__(self, driver, grades, prune):
         self.driver = driver
-        self.grade1 = grades[1]
-        self.grade2 = grades[2]
-        self.grade3 = grades[3]
+        self.grade1 = grades[0]
+        self.grade2 = grades[1]
+        self.grade3 = grades[2]
         self.prune = prune
 
     def calculate_months_difference(self, start_date, end_date):

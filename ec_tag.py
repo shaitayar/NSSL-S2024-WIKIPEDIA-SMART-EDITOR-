@@ -25,7 +25,7 @@ class ECTag:
         RETURN 
             SUM(CASE WHEN u.pro_palestine is not NULL THEN 1 ELSE 0 END) AS num_pro_palestine,
             SUM(CASE WHEN u.pro_israel is not NULL THEN 1 ELSE 0 END) AS num_pro_israel,
-            COUNT(u) AS total
+            COUNT(u) AS neutral
         """
 
         with self.driver.session() as session:
@@ -55,7 +55,7 @@ class ECTag:
         RETURN 
             SUM(CASE WHEN u.pro_palestine IS NOT NULL THEN 1 ELSE 0 END) AS num_pro_palestine,
             SUM(CASE WHEN u.pro_israel IS NOT NULL THEN 1 ELSE 0 END) AS num_pro_israel,
-            COUNT(u) AS total
+            COUNT(u) AS neutral
         """
 
         with self.driver.session() as session:

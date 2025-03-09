@@ -110,10 +110,10 @@ class Contributions:
                 """, username=user, count=total_count, iteration=self.iteration)
             # print(f"{user}, total_contribs: {total_count} inserted to Neo4j")
 
-    def pages_to_users_no_limit(self, pages, all_users, months_start=5, months_end=6):
+    def pages_to_users_no_limit(self, pages, all_users):
         # cutoff_date = datetime.datetime.utcnow() - datetime.timedelta(days=days)
-        end_date = datetime.datetime.utcnow() - datetime.timedelta(days=months_end * 30)
-        start_date = datetime.datetime.utcnow() - datetime.timedelta(days=months_start * 30)
+        end_date = datetime.datetime.utcnow() - datetime.timedelta(days=self.months_end * 30)
+        start_date = datetime.datetime.utcnow() - datetime.timedelta(days=self.months_start * 30)
 
         for page in pages:
             rccontinue = None
@@ -407,9 +407,9 @@ class Contributions:
             # else:
             #    print(f"Failed to fetch data for page {page}. Status code: {resp.status_code}")
 
-    def fetch_user_contributions_no_limit(self, username, all_contributions, months_start=5, months_end=6):
-        end_date = datetime.datetime.utcnow() - datetime.timedelta(days=months_end * 30)
-        start_date = datetime.datetime.utcnow() - datetime.timedelta(days=months_start * 30)
+    def fetch_user_contributions_no_limit(self, username, all_contributions):
+        end_date = datetime.datetime.utcnow() - datetime.timedelta(days=self.months_end * 30)
+        start_date = datetime.datetime.utcnow() - datetime.timedelta(days=self.months_start * 30)
 
         uccontinue = None
         while True:
