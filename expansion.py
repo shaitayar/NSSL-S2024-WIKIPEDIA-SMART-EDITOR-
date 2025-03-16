@@ -28,7 +28,7 @@ class Expansion:
     def get_users_final(self):
         query = """
          MATCH (u:User) 
-         WHERE u.edit_iteration <> 0 OR (u.revert_iteration <> 0 AND u.revert_iteration % 2 = 0) 
+         WHERE (u.edit_iteration <> 0 OR (u.revert_iteration <> 0 AND u.revert_iteration % 2 = 0))
          AND u.is_pruned = false
          OPTIONAL MATCH (u)-[r:CONTRIBUTED_TO]->(p:Page)
          OPTIONAL MATCH (u)-[r2:REVERTED_PAGE]->(p2:Page)

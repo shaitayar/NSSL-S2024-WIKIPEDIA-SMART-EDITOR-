@@ -63,21 +63,24 @@ if __name__ == '__main__':
     grades = config['Amoeba_Results']['grades']
     prune = config['Amoeba_Results']['prune']
 
-    export_to_amoeba = True
-    #Todo: add export to amoeba in config
+    export_to_amoeba = ['export_to_amoeba']
 
-    if (is_measurement):
+    if (is_measurement or export_to_amoeba):
         config_neo = config['neo4j']['measurements']
         driver = connect_to_neo4j(config_neo['uri'], config_neo['username'], config_neo['password'])
         # 1 expansion then measurements
         contribution = contributions.Contributions(driver, 1, kernel_users, kernel_pages, months_start, months_end, classify)
-        revert = reverts.RevertsEC(driver, 1, kernel_users, kernel_pages, months_start, months_end, classify)
+        revert = reverts.RevertsEC(driver, 2, kernel_users, kernel_pages, months_start, months_end, classify)
         measurement = measurements.DescryptiveAnalytics(driver, kernel_users)
         measurement.routine()
 
         ex = export.Export('measurements')
         ex.export_to_json(contribution.iterations_data.to_dict(), "contributions")
         ex.export_to_json(revert.iterations_data.to_dict(), "ec_reverts")
+
+        #export data to Amoeba in Matlab
+        am = amoeba.Amoeba(driver)
+        am.export_users_to_amoeba()
         driver.close()
 
     if (is_general_population):

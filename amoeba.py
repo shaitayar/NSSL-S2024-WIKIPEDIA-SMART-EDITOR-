@@ -13,7 +13,7 @@ class Amoeba:
     Inputs:   driver: relevant driver
     Returns:  .csv file
     """
-    def __init__(self, driver, output_file= "users_to_amoeba"):
+    def __init__(self, driver, output_file= "exports\\users_to_amoeba"):
         self.driver = driver
         self.output_file = output_file + ".csv"
 

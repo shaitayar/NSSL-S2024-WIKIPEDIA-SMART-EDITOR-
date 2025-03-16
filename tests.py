@@ -1,5 +1,3 @@
-
-import os
 import unittest
 import general_population
 import classify
@@ -112,6 +110,7 @@ class TestGeneralPopulation(unittest.TestCase):
         self.assertEqual(general_population_ec_tag.neutral, self.general_population.ec_time_data.neutral)
 
         self.driver.close()
+
     #test routine
     def test_routine(self):
         self.general_population.routine()

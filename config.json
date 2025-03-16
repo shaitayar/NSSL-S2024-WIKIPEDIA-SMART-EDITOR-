@@ -16,10 +16,11 @@
     },
     "duration": {
         "months_start": 6,
-        "months_end": 6.7,
+        "months_end": 6.4,
         "days_for_recent_changes": 4
     },
     "graph_input_filename":"",
+    "export_to_amoeba": true,
     "Amoeba_Results" : {
       "is_grade": false,
       "grades": [
@@ -27,7 +28,7 @@
         0.5,
         0
       ],
-      "prune": 0.1
+      "prune": 0.5
     },
     "logging": {
         "filename": "app.log",
@@ -41,7 +42,7 @@
     "neo4j": {
         "measurements": {
             "uri": "bolt://localhost:7687",
-            "username": "measurements",
+            "username": "neo4j",
             "password": "12345678"
         },
         "general_population": {
