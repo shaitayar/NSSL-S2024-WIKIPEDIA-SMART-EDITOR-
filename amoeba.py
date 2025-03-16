@@ -1,8 +1,18 @@
+#****************************************************
+# Purpose:  Export data from DB to amoeba
+# Classes:  Amoeba
+#****************************************************
+
 import export
 import pandas as pd
 
 
 class Amoeba:
+    """
+    Purpose:  Extract data to file, used for amoeba Matlab script
+    Inputs:   driver: relevant driver
+    Returns:  .csv file
+    """
     def __init__(self, driver, output_file= "users_to_amoeba"):
         self.driver = driver
         self.output_file = output_file + ".csv"

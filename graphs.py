@@ -194,7 +194,7 @@ class GeneralPopulationGraph:
             self.general_population_graph_15min()
         if(self.graph_general_population_ec_tag):
             self.general_population_graph_ec_tag()
-
+            self.graph_general_population_ec_tag_normalized()
 
 
     def get_hourly_averages(self, data):
@@ -290,6 +290,33 @@ class GeneralPopulationGraph:
         plt.xlabel('Months', fontsize=14)
         plt.ylabel('Percentage of Pro Israel and Pro Palestine users(%)', fontsize=14)
         plt.title('Got EC Within Months From Registration - General Population', fontsize=16)
+
+        plt.xticks(index, self.ec_time_data.months)
+        plt.legend(fontsize=12)
+        plt.tight_layout()
+        plt.show()
+
+    def graph_general_population_ec_tag_normalized(self):
+        tpp = sum(self.ec_time_data.pro_palestine)
+        tpi = sum(self.ec_time_data.pro_israel)
+        tt = sum(self.ec_time_data.neutral)
+
+        pro_palestine_percentage = [pp * 100 / tpp for pp in self.ec_time_data.pro_palestine]
+        pro_israel_percentage = [pi * 100 / tpi for pi in self.ec_time_data.pro_israel]
+        other_users_percentage = [t * 100 / tt for t in self.ec_time_data.neutral]
+
+        # Set the bar width
+        bar_width = 0.25
+        index = np.arange(len(self.ec_time_data.months))
+
+        plt.figure(figsize=(10, 6))
+        plt.bar(index - bar_width, pro_palestine_percentage, bar_width, color='red', label='Pro-Palestine')
+        plt.bar(index, pro_israel_percentage, bar_width, color='blue', label='Pro-Israel')
+        plt.bar(index + bar_width, other_users_percentage, bar_width, color='green', label='Other Users')
+
+        plt.xlabel('Months', fontsize=14)
+        plt.ylabel('Precentage of Users Normalized to each Population', fontsize=14)
+        plt.title('User Distribution EC TAG', fontsize=16)
 
         plt.xticks(index, self.ec_time_data.months)
         plt.legend(fontsize=12)

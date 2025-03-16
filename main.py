@@ -75,21 +75,21 @@ if __name__ == '__main__':
         measurement = measurements.DescryptiveAnalytics(driver, kernel_users)
         measurement.routine()
 
-        ex = export.Export()
-        ex.export_to_json(contribution.iterations_data, "contributions")
-        ex.export_to_json(revert.iterations_data, "ec_reverts")
+        ex = export.Export('measurements')
+        ex.export_to_json(contribution.iterations_data.to_dict(), "contributions")
+        ex.export_to_json(revert.iterations_data.to_dict(), "ec_reverts")
         driver.close()
 
     if (is_general_population):
         config_neo = config['neo4j']['general_population']
         driver = connect_to_neo4j(config_neo['uri'], config_neo['username'], config_neo['password'])
         classify = classify.Classify(driver, project_palestine_users, project_israel_users, palestine_userbox, israel_userbox)
-        general_population = general_population.GeneralPopulation(driver, kernel_users, kernel_pages, months_start, days, classify)
+        general_population = general_population.GeneralPopulation(driver, months_start, days, classify)
         general_population.routine()
 
-        ex = export.Export()
-        ex.export_to_json(general_population.time_data, "general_population_total")
-        ex.export_to_json(general_population.ec_time_data, "general_population_ec_tag")
+        ex = export.Export('general_population')
+        ex.export_to_json(general_population.time_data.to_dict(), "general_population_total")
+        ex.export_to_json(general_population.ec_time_data.to_dict(), "general_population_ec_tag")
         driver.close()
 
     if (expansion):
@@ -99,7 +99,6 @@ if __name__ == '__main__':
         expansion = expansion.Expansion(driver, max_iterations_contribs, max_iterations_reverts, kernel_users, kernel_pages, months_start, months_end, classify, prune, grades, is_expansions_with_grades)
         expansion.routine()
 
-        #Todo: add final user list
         driver.close()
 
 

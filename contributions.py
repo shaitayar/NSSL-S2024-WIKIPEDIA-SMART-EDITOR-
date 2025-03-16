@@ -15,15 +15,15 @@ class Contributions:
         self.iterations_data = IterationsData()
         self.classify = classify
 
-    def calculate_data(self, is_prune):
+    def calculate_data(self, is_pruned):
         with self.driver.session() as session:
             iteration_tag_condition = "n.edit_iteration IS NOT NULL"
 
             pro_palestine_tag_condition = "n.pro_palestine IS NOT NULL"
             pro_israel_tag_condition = "n.pro_israel IS NOT NULL"
-            prune_condition = "n.is_prune = false"
+            prune_condition = "n.is_pruned = false"
 
-            if is_prune:
+            if is_pruned:
                 iteration_tag_condition += f" AND {prune_condition}"
 
             result = session.run(f"""

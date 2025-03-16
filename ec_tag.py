@@ -6,7 +6,7 @@ class ECTag:
         self.driver = driver
         self.time_data = general.TimeData()
 
-    def run_query(self, months, is_prune):
+    def run_query(self, months, is_pruned):
         query = """
         MATCH (u:User)
         WITH u,
@@ -17,9 +17,9 @@ class ECTag:
         WHERE (duration.years * 12 + duration.months + duration.days/30.0) < $months
         AND (duration.years * 12 + duration.months + duration.days/30.0) >= $pre_months
         """
-        if is_prune:
+        if is_pruned:
             query += """
-            AND u.is_prune = false
+            AND u.is_pruned = false
             """
         query += """
         RETURN 
@@ -35,7 +35,7 @@ class ECTag:
                 self.time_data.pro_israel.append(record['num_pro_israel'])
                 self.time_data.neutral.append(record['neutral'])
 
-    def run_query_final(self, is_prune):
+    def run_query_final(self, is_pruned):
         query = """
         MATCH (u:User)
         WITH u,
@@ -46,9 +46,9 @@ class ECTag:
         WHERE (duration.years * 12 + duration.months) > 12
         """
 
-        if is_prune:
+        if is_pruned:
             query += """
-            AND u.is_prune = false
+            AND u.is_pruned = false
             """
 
         query += """
@@ -65,7 +65,7 @@ class ECTag:
                 self.time_data.pro_israel.append(record['num_pro_israel'])
                 self.time_data.neutral.append(record['neutral'])
 
-    def routine(self, is_prune):
+    def routine(self, is_pruned):
         for month in range(2, 13):
-            self.run_query(month, is_prune)
-        self.run_query_final(is_prune)
+            self.run_query(month, is_pruned)
+        self.run_query_final(is_pruned)

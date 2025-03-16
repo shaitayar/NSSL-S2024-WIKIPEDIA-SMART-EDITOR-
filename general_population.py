@@ -1,3 +1,7 @@
+#****************************************************
+# Purpose:  Combines all general population methods
+# Classes:  GeneralPopulation
+#****************************************************
 import csv
 import requests
 import datetime
@@ -5,11 +9,25 @@ import general
 from collections import defaultdict
 import pandas as pd
 
+
 class GeneralPopulation:
-    def __init__(self, driver, kernel_users, kernel_pages, months_start, days, classify):
+    """
+    Purpose:  Combines all the functions associated with
+              general population
+    Inputs:   driver: the driver to connect neo4j
+              months_start: # of past months to collect data from Wikipedia Api.
+              days: # of days to collect data from
+              classify: Classify object contain the characteristics
+                       of pro israel and pro palestine as defined in
+                       the configuration
+    Function: void routine()
+    Comment:  In order to export json file need to call Export as in:
+              tests.TestGeneralPopulation.test_export_import_data while DB
+              is on.
+    """
+
+    def __init__(self, driver, months_start, days, classify):
         self.driver = driver
-        self.kernel_users = kernel_users
-        self.kernel_pages = kernel_pages
         self.months_start = months_start
         self.days = days
         self.classify = classify
@@ -264,8 +282,21 @@ class GeneralPopulation:
                 }
             )
             self.add_userPage_data_to_user(user['user'], user['time'], userbox)
+            registration = metadata['registration'] if 'registration' in metadata else None
+            ec_timestamp = metadata['ec_timestamp'] if 'ec_timestamp' in metadata else None
+
+            self.add_metadata_to_user(user, registration, ec_timestamp)
             i += 1
         return user_data
+
+    def add_metadata_to_user(self, user, registration, ec_timestamp):
+        with self.driver.session() as session:
+            # Ensure data consistency
+            session.run("""
+                MERGE (u:User {username: $username})
+                SET u.registration = $registration
+                SET u.ec_timestamp = $ec_timestamp
+            """, username=user['user'], registration=registration, ec_timestamp=ec_timestamp)
 
     def add_userPage_data_to_user(self, username, time, metadata):
         with self.driver.session() as session:

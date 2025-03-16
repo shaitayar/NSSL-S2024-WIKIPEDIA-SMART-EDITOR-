@@ -21,26 +21,26 @@ class TestGeneralStuff(unittest.TestCase):
 
     # test if can read from a file
     def test_read_import_file(self):
-        ex = export.Export(self.filename)
+        ex = export.Export("test", self.filename)
         ex.export_to_json("world!", "hello")
 
-        im = export.Import(self.filename)
+        im = export.Import("test", self.filename)
         im.import_from_json()
         data = im.data.get("hello", [])
         self.assertEqual(data, "world!")
 
     def test_export_multiple_times(self):
-        ex1 = export.Export()
+        ex1 = export.Export("test")
         ex1.export_to_json("world!", "Hello")
 
-        ex2 = export.Export()
+        ex2 = export.Export("test")
         ex2.export_to_json("olam!", "Shalom")
 
-        ex3 = export.Export()
+        ex3 = export.Export("test")
         ex3.export_to_json("mundo!", "Hola")
 
 
-        im = export.Import("")
+        im = export.Import("test")
         im.import_from_json()
         data = im.data.get("Hello", [])
         self.assertEqual(data, "world!")
@@ -82,7 +82,7 @@ class TestGeneralPopulation(unittest.TestCase):
         self.israel_userbox = config['userboxes']['pro_israel']
         self.filename = config['graph_input_filename']
         self.classify = classify.Classify(self.driver, self.project_palestine_users, self.project_israel_users, self.palestine_userbox, self.israel_userbox)
-        self.general_population = general_population.GeneralPopulation(self.driver, self.kernel_users, self.kernel_pages, self.months_start, self.days, self.classify)
+        self.general_population = general_population.GeneralPopulation(self.driver, self.months_start, self.days, self.classify)
 
     # test import and export
     def test_export_import_data(self):
@@ -91,10 +91,10 @@ class TestGeneralPopulation(unittest.TestCase):
 
         self.general_population.general_population_graph_data()
         self.general_population.general_population_ec_tag()
-        ex = export.Export()
+        ex = export.Export("general_population")
         ex.export_to_json(self.general_population.time_data.to_dict(), "general_population_total")
         ex.export_to_json(self.general_population.ec_time_data.to_dict(), "general_population_ec_tag")
-        im = export.Import(self.filename)
+        im = export.Import("general_population", self.filename)
         im.import_from_json()
 
         general_population_total.insert(im.data.get('general_population_total', []))
@@ -113,14 +113,7 @@ class TestGeneralPopulation(unittest.TestCase):
         self.driver.close()
     #test routine
     def test_routine(self):
-        pass
         self.general_population.routine()
-
-    #test routine if neo4j is down
-    def test_routine_no_neo4j(self):
-        pass
-        self.general_population.routine()
-
 
 
 # test if expansions data is correct
@@ -155,8 +148,14 @@ class TestExpansions(unittest.TestCase):
 
     def test_grades(self):
         classify_ = classify.Classify(self.driver, self.project_palestine_users, self.project_israel_users, self.palestine_userbox, self.israel_userbox)
-        expansion_ = expansion.Expansion(self.driver, self.max_iterations_contribs, self.max_iterations_reverts, self.kernel_users, self.kernel_pages, self.months_start, self.months_end, classify_, self.grades, self.prune, True)
+        expansion_ = expansion.Expansion(self.driver, self.max_iterations_contribs, self.max_iterations_reverts, self.kernel_users, self.kernel_pages, self.months_start, self.months_end, classify_, self.prune, self.grades, True)
         expansion_.routine()
+
+    def test_final_userlist_graded(self):
+        classify_ = classify.Classify(self.driver, self.project_palestine_users, self.project_israel_users, self.palestine_userbox, self.israel_userbox)
+        expansion_ = expansion.Expansion(self.driver, self.max_iterations_contribs, self.max_iterations_reverts, self.kernel_users, self.kernel_pages, self.months_start, self.months_end, classify_, self.prune, self.grades, True)
+        expansion_.get_users_final()
+
 
 # test graphs class
 class TestGraphs(unittest.TestCase):
@@ -177,7 +176,7 @@ class TestGraphs(unittest.TestCase):
             general_population_total = general.TimeData()
             general_population_ec_tag = general.TimeData()
 
-            im = export.Import(self.filename)
+            im = export.Import("general_population", self.filename)
             im.import_from_json()
             if self.graph_general_population_hour or self.graph_general_population_15min:
                 try: general_population_total.insert(im.data.get('general_population_total', []))
@@ -198,7 +197,7 @@ class TestGraphs(unittest.TestCase):
             ec_reverts_data = general.Data()
             ec_tag_data = general.TimeData()
             general_population_total = general.TimeData()
-            im = export.Import(self.filename)
+            im = export.Import("expansion_no_grades", self.filename)
             im.import_from_json()
             if self.graph_contributions:
                 try: contributions_data.insert(im.data.get('contributions', []))
@@ -215,7 +214,7 @@ class TestGraphs(unittest.TestCase):
                 try: ec_tag_data.insert(im.data.get('ec_tag', []))
                 except: print(f"no EC Tag Data in {im.filepath}")
 
-            im_general = export.Import("export_20250227_1631.json")
+            im_general = export.Import("general_population")
             im_general.import_from_json()
             general_population_total.insert(im_general.data.get('general_population_total', []))
             graph = graphs.Graphs(self.graph_contributions, self.graph_reverts, self.graph_ec_reverts, self.graph_ec_tag,

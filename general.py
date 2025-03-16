@@ -1,3 +1,12 @@
+#****************************************************
+# Purpose:  Contains all the data structures that contains the data
+# Classes:  General_Population: mean, variance and std for the
+#           general_population data, mainly for the graphs
+#           IterationsData: data & iterations
+#           Data: regular data for graphs, i.e: reverts
+#           TimeData: data that contains timestamp, i.e: ec_tag
+#****************************************************
+
 from collections import defaultdict
 
 class General_Population:
@@ -40,10 +49,10 @@ class IterationsData:
                    f"\nTotal Users: {self.total_users[i]}")
 
     def ps_mean(self, iteration):
-        return self.num_palestinians[iteration] / self.total_users[iteration]
+        return (self.num_palestinians[iteration] / self.total_users[iteration]) if self.total_users[iteration] > 0 else 0
 
     def il_mean(self, iteration):
-        return self.num_israelis[iteration] / self.total_users[iteration]
+        return (self.num_israelis[iteration] / self.total_users[iteration]) if self.total_users[iteration] > 0 else 0
 
 class Data:
     def __init__(self):
@@ -90,6 +99,7 @@ class TimeData:
 
     def to_dict(self):
         return {
+            'months': self.months,
             'time': self.time,
             'pro_palestine': self.pro_palestine,
             'pro_israel': self.pro_israel,
