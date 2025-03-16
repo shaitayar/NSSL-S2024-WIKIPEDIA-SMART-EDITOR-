@@ -1,3 +1,9 @@
+#****************************************************
+# Purpose:  Contains all the functions related to expansion
+#           by contributions to pages / ec_pages
+# Classes:  Contributions
+#****************************************************
+
 from general import IterationsData
 import datetime
 import requests

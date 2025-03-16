@@ -1,3 +1,4 @@
+
 import os
 import unittest
 import general_population
@@ -154,8 +155,7 @@ class TestExpansions(unittest.TestCase):
     def test_final_userlist_graded(self):
         classify_ = classify.Classify(self.driver, self.project_palestine_users, self.project_israel_users, self.palestine_userbox, self.israel_userbox)
         expansion_ = expansion.Expansion(self.driver, self.max_iterations_contribs, self.max_iterations_reverts, self.kernel_users, self.kernel_pages, self.months_start, self.months_end, classify_, self.prune, self.grades, True)
-        expansion_.get_users_final()
-
+        expansion_.export_final_users_to_csv()
 
 # test graphs class
 class TestGraphs(unittest.TestCase):
@@ -225,7 +225,7 @@ class TestGraphs(unittest.TestCase):
     #test what happens if the user tries to plot a graph without data in the json file
     def test_graph_no_data(self):
         reverts_data = general.Data()
-        im = export.Import(self.filename)
+        im = export.Import('expansion_no_grades', self.filename)
         im.import_from_json()
         if self.graph_reverts:
             try:

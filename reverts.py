@@ -1,3 +1,10 @@
+#****************************************************
+# Purpose:  Contains all the functions related to
+#           Reverts War
+# Classes:  Reverts
+#           RevertsEC - inherits from Reverts
+#****************************************************
+
 import general
 from general import IterationsData
 import datetime

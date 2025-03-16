@@ -28,7 +28,7 @@ class Expansion:
     def get_users_final(self):
         query = """
          MATCH (u:User) 
-         WHERE u.edit_iteration is not 0 OR (u.revert_iteration is not 0 AND u.revert_iteration % 2 = 0) 
+         WHERE u.edit_iteration <> 0 OR (u.revert_iteration <> 0 AND u.revert_iteration % 2 = 0) 
          AND u.is_pruned = false
          OPTIONAL MATCH (u)-[r:CONTRIBUTED_TO]->(p:Page)
          OPTIONAL MATCH (u)-[r2:REVERTED_PAGE]->(p2:Page)
@@ -81,7 +81,7 @@ class Expansion:
             iteration_reverts += 1
 
         self.ec_tag.routine(True)
-        self.export_final_users_to_csv(iterations_contribs-1, iteration_reverts-1)
+        self.export_final_users_to_csv()
         ex = export.Export("expansion_grades")
         ex.export_to_json(self.contribution.iterations_data.to_dict(), "contributions")
         ex.export_to_json(self.reverts.iterations_data.to_dict(), "ec_reverts")
