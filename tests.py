@@ -91,6 +91,11 @@ class TestMeasurements(unittest.TestCase):
         #export data to Amoeba in Matlab
         self.amoeba.export_users_to_amoeba()
 
+    def test_draw_graphs(self):
+        #self.measurement.routine()
+        self.measurement.draw_graphs()
+
+
 # test if general population stats are correct
 class TestGeneralPopulation(unittest.TestCase):
     def setUp(self) -> None:

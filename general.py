@@ -1,6 +1,7 @@
 #****************************************************
 # Purpose:  Contains all the data structures that contains the data
-# Classes:  General_Population: mean, variance and std for the
+# Classes:  MeasurementsData:
+#           General_Population: mean, variance and std for the
 #           general_population data, mainly for the graphs
 #           IterationsData: data & iterations
 #           Data: regular data for graphs, i.e: reverts
@@ -8,6 +9,54 @@
 #****************************************************
 
 from collections import defaultdict
+class MeasurementsData:
+    def __init__(self):
+        self.contribs_usernames = []
+        self.contribs_total = []
+        self.contribs_percent_protected = []
+
+        self.reverts_usernames = []
+        self.reverts_total = []
+        self.reverts_percent_protected = []
+
+        self.in_list_percent_protected_contribs = []
+        self.not_in_list_percent_protected_contribs = []
+
+        self.in_list_percent_protected_reverts = []
+        self.not_in_list_percent_protected_reverts = []
+
+    def to_dict(self):
+        return {
+            'contribs_usernames': self.contribs_usernames,
+            'contribs_total': self.contribs_total,
+            'contribs_percent_protected': self.contribs_percent_protected,
+
+            'reverts_usernames': self.reverts_usernames,
+            'reverts_total': self.reverts_total,
+            'reverts_percent_protected': self.reverts_percent_protected,
+
+            'in_list_percent_protected_contribs': self.in_list_percent_protected_contribs,
+            'not_in_list_percent_protected_contribs': self.not_in_list_percent_protected_contribs,
+
+            'in_list_percent_protected_reverts': self.in_list_percent_protected_reverts,
+            'not_in_list_percent_protected_reverts': self.not_in_list_percent_protected_reverts
+        }
+
+    def insert(self, raw_data):
+        if raw_data:
+            self.contribs_usernames = raw_data.get('contribs_usernames', [])
+            self.contribs_total = raw_data.get('contribs_total', [])
+            self.contribs_percent_protected = raw_data.get('contribs_percent_protected', [])
+
+            self.reverts_usernames = raw_data.get('reverts_usernames', [])
+            self.reverts_total = raw_data.get('reverts_total', [])
+            self.reverts_percent_protected = raw_data.get('reverts_percent_protected', [])
+
+            self.in_list_percent_protected_contribs = raw_data.get('in_list_percent_protected_contribs', [])
+            self.not_in_list_percent_protected_contribs = raw_data.get('not_in_list_percent_protected_contribs', [])
+
+            self.in_list_percent_protected_reverts = raw_data.get('in_list_percent_protected_reverts', [])
+            self.not_in_list_percent_protected_reverts = raw_data.get('not_in_list_percent_protected_reverts', [])
 
 class General_Population:
     def __init__(self, il_mean, il_variance, il_std,
