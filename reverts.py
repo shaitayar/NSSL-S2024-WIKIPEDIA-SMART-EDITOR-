@@ -1,3 +1,10 @@
+#****************************************************
+# Purpose:  Contains all the functions related to
+#           Reverts War
+# Classes:  Reverts
+#           RevertsEC - inherits from Reverts
+#****************************************************
+
 import general
 from general import IterationsData
 import datetime
@@ -16,12 +23,12 @@ class Reverts:
         self.iterations_data = IterationsData()
         self.classify = classify
 
-    def update_reverts(self, is_prune=False):
+    def update_reverts(self, is_pruned=False):
         self.classify.classify_editor()
         self.classify.classify_editor_by_name()
         self.classify.classify_editor_by_palestine_project()
 
-        self.calculate_data_reverts(is_prune)
+        self.calculate_data_reverts(is_pruned)
 
     def insert_users(self):
         with self.driver.session() as session:
@@ -72,14 +79,14 @@ class Reverts:
 
         return metadata
 
-    def calculate_data_reverts(self, is_prune):
+    def calculate_data_reverts(self, is_pruned):
         with self.driver.session() as session:
             iteration_tag_condition = f"n.revert_iteration = {self.iteration}"
             pro_palestine_tag_condition = "n.pro_palestine IS NOT NULL"
             pro_israel_tag_condition = "n.pro_israel IS NOT NULL"
-            prune_condition = "n.is_prune = false"
+            prune_condition = "n.is_pruned = false"
 
-            if is_prune:
+            if is_pruned:
                 iteration_tag_condition += f" AND {prune_condition}"
 
             result = session.run(f"""
@@ -358,7 +365,7 @@ class Reverts:
                 f"""
                 MATCH (n:User) 
                 WHERE n.revert_iteration = $iteration
-                AND n.is_prune = false
+                AND n.is_pruned = false
                 RETURN n.username AS user
                 """, iteration=iteration
             )

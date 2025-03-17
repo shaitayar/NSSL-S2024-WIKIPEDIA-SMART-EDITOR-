@@ -63,43 +63,47 @@ if __name__ == '__main__':
     grades = config['Amoeba_Results']['grades']
     prune = config['Amoeba_Results']['prune']
 
-    export_to_amoeba = True
-    #Todo: add export to amoeba in config
+    export_to_amoeba = ['export_to_amoeba']
 
-    if (is_measurement):
+    if (is_measurement or export_to_amoeba):
         config_neo = config['neo4j']['measurements']
         driver = connect_to_neo4j(config_neo['uri'], config_neo['username'], config_neo['password'])
         # 1 expansion then measurements
+        classify = classify.Classify(driver, project_palestine_users, project_israel_users, palestine_userbox, israel_userbox)
+
         contribution = contributions.Contributions(driver, 1, kernel_users, kernel_pages, months_start, months_end, classify)
-        revert = reverts.RevertsEC(driver, 1, kernel_users, kernel_pages, months_start, months_end, classify)
+        revert = reverts.RevertsEC(driver, 2, kernel_users, kernel_pages, months_start, months_end, classify)
         measurement = measurements.DescryptiveAnalytics(driver, kernel_users)
         measurement.routine()
 
-        ex = export.Export()
-        ex.export_to_json(contribution.iterations_data, "contributions")
-        ex.export_to_json(revert.iterations_data, "ec_reverts")
+        ex = export.Export('measurements')
+        ex.export_to_json(contribution.iterations_data.to_dict(), "contributions")
+        ex.export_to_json(revert.iterations_data.to_dict(), "ec_reverts")
+
+        #export data to Amoeba in Matlab
+        am = amoeba.Amoeba(driver)
+        am.export_users_to_amoeba()
         driver.close()
 
     if (is_general_population):
         config_neo = config['neo4j']['general_population']
         driver = connect_to_neo4j(config_neo['uri'], config_neo['username'], config_neo['password'])
         classify = classify.Classify(driver, project_palestine_users, project_israel_users, palestine_userbox, israel_userbox)
-        general_population = general_population.GeneralPopulation(driver, kernel_users, kernel_pages, months_start, days, classify)
+        general_population = general_population.GeneralPopulation(driver, months_start, days, classify)
         general_population.routine()
 
-        ex = export.Export()
-        ex.export_to_json(general_population.time_data, "general_population_total")
-        ex.export_to_json(general_population.ec_time_data, "general_population_ec_tag")
+        ex = export.Export('general_population')
+        ex.export_to_json(general_population.time_data.to_dict(), "general_population_total")
+        ex.export_to_json(general_population.ec_time_data.to_dict(), "general_population_ec_tag")
         driver.close()
 
     if (expansion):
         config_neo = config['neo4j']['expansions']
         driver = connect_to_neo4j(config_neo['uri'], config_neo['username'], config_neo['password'])
         classify = classify.Classify(driver, project_palestine_users, project_israel_users, palestine_userbox, israel_userbox)
-        expansion = expansion.Expansion(driver, max_iterations_contribs, max_iterations_reverts, kernel_users, kernel_pages, months_start, months_end, classify, grades, prune, is_expansions_with_grades)
+        expansion = expansion.Expansion(driver, max_iterations_contribs, max_iterations_reverts, kernel_users, kernel_pages, months_start, months_end, classify, prune, grades, is_expansions_with_grades)
         expansion.routine()
 
-        #Todo: add final user list
         driver.close()
 
 
@@ -133,21 +137,21 @@ if __name__ == '__main__':
             im = export.Import(filename)
             im.import_from_json()
             if graph_contributions:
-                try: contributions_data.insert(im.data['contributions'])
+                try: contributions_data.insert(im.data.get('contributions', []))
                 except: print(f"no Contributions Data in {im.filepath}")
             if graph_reverts:
-                try: reverts_data.insert(im.data['reverts'])
+                try: reverts_data.insert(im.data.get('reverts', []))
                 except: print(f"no Reverts Data in {im.filepath}")
 
             if graph_ec_reverts:
-                try: ec_reverts_data.insert(im.data['ec_reverts'])
+                try: ec_reverts_data.insert(im.data.get('ec_reverts', []))
                 except: print(f"no EC Reverts Data in {im.filepath}")
 
             if graph_ec_tag:
-                try: ec_tag_data.insert(im.data['ec_tag'])
+                try: ec_tag_data.insert(im.data.get('ec_tag', []))
                 except: print(f"no EC Tag Data in {im.filepath}")
 
-            general_population_total.insert(im.data['general_population_total'])
+            general_population_total.insert(im.data.get('general_population_total', []))
 
             graph = graphs.Graphs(graph_contributions, graph_reverts, graph_ec_reverts, graph_ec_tag,
                                   contributions_data, reverts_data, ec_reverts_data, ec_tag_data, general_population_total)

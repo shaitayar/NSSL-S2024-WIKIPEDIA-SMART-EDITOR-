@@ -1,3 +1,9 @@
+#****************************************************
+# Purpose:  Draw the graphs for the project
+# Classes:  Graphs
+#           GeneralPopulationGraph
+#****************************************************
+
 import pandas as pd
 import numpy as np
 import matplotlib
@@ -24,6 +30,7 @@ class Graphs():
         self.general_population_data = general_population_data
 
     def routine(self):
+        self.calculate_mean_and_variance()
         if (self.graph_contributions):
             self.calc_and_plot_ec_contribs()
         if (self.graph_reverts):
@@ -34,11 +41,19 @@ class Graphs():
             self.calc_and_plot_ec_tag()
 
     def calculate_mean_and_variance(self):
-        total_data = self.general_population_data.pro_israel + self.general_population_data.pro_palestine + self.general_population_data.neutral
+        time_intervals = (self.general_population_data.to_dict())['time']
+
+        dd = self.general_population_data.to_default_dict()
+        pro_israel_data = pd.Series(dd['pro_israel_dict']).reindex(time_intervals, fill_value=0)
+        pro_palestine_data = pd.Series(dd['pro_palestine_dict']).reindex(time_intervals, fill_value=0)
+        neutral_data = pd.Series(dd['neutral_dict']).reindex(time_intervals, fill_value=0)
+        total_data = pro_israel_data + pro_palestine_data + neutral_data
+
         total_users_all_day = total_data.sum()
-        pro_israel_weights = self.general_population_data.pro_israel.values * total_data.values / total_users_all_day
-        pro_palestine_weights = self.general_population_data.pro_palestine.values * total_data.values / total_users_all_day
-        neutral_weights = self.general_population_data.neutral.values * total_data.values / total_users_all_day
+
+        pro_israel_weights = pro_israel_data * total_data.values / total_users_all_day
+        pro_palestine_weights = pro_palestine_data * total_data.values / total_users_all_day
+        neutral_weights = neutral_data * total_data.values / total_users_all_day
 
         self.data.pro_israel_mean = pro_israel_weights.mean()
         self.data.pro_israel_variance = pro_israel_weights.var()
@@ -52,17 +67,18 @@ class Graphs():
         if not self.contributions:
             print("Unable To Plot Contributions Graph - Empty Contributions")
             return
-        df = pd.DataFrame(self.contributions)
-        df['Mean Ratio'] = df['Palestinians'] / df['Total Users']
+        data = self.contributions.to_dict()
+        df = pd.DataFrame.from_dict(data)
+        df['mean_ratio'] = df['pro_palestine'] / df['neutral']
 
         plt.figure(figsize=(10, 6))
 
-        bars = plt.bar(df['Iteration'], df['Mean Ratio'], color='red', alpha=0.7)
+        bars = plt.bar(df['iterations'], df['mean_ratio'], color='red', alpha=0.7)
 
         plt.axhline(y=self.data.pro_palestine_mean - self.data.pro_palestine_variance, color='green', linestyle='-',
-                    label=f'General Population: mean-variance= {(self.data.pro_palestine_mean - self.data.pro_palestine_variance) * 100:.2}e-2')
+                    label=f'General Population: mean-variance= {((self.data.pro_palestine_mean - self.data.pro_palestine_variance) * 100):.2f}e-2')
         plt.axhline(y=self.data.pro_palestine_mean + self.data.pro_palestine_variance, color='green', linestyle='-',
-                    label=f'General Population: mean+variance= {(self.data.pro_palestine_mean + self.data.pro_palestine_variance) * 100:.2}e-2')
+                    label=f'General Population: mean+variance= {((self.data.pro_palestine_mean + self.data.pro_palestine_variance) * 100):.2f}e-2')
 
         for bar in bars:
             yval = bar.get_height()
@@ -74,35 +90,36 @@ class Graphs():
 
         plt.title('EC Pages Contributions', fontsize=16)
         plt.legend(fontsize=12)
-        plt.xticks(range(0, len(df['Iteration'])))
+        plt.xticks(range(0, len(df['iterations'])))
         plt.show()
 
     def calc_and_plot_reverts(self):
         if not self.reverts:
             print("Unable To Plot Reverts Graph - Empty Reverts")
             return
-        df = pd.DataFrame(self.reverts)
+        data = self.reverts.to_dict()
+        df = pd.DataFrame.from_dict(data)
 
-        df['Palestinian Ratio'] = df['Palestinians'] / df['Total Users']
-        df['Israeli Ratio'] = df['Israelis'] / df['Total Users']
+        df['palestine_ratio'] = df['pro_palestine'] / df['neutral']
+        df['Israeli Ratio'] = df['pro_israel'] / df['neutral']
 
         plt.figure(figsize=(12, 7))
 
-        bars_palestinians = plt.bar(df['Iteration'] - 0.2, df['Palestinian Ratio'], width=0.4, color='red', alpha=0.7,
+        bars_palestinians = plt.bar(df['iterations'] - 0.2, df['palestine_ratio'], width=0.4, color='red', alpha=0.7,
                                     label='Palestinians')
-        bars_israelis = plt.bar(df['Iteration'] + 0.2, df['Israeli Ratio'], width=0.4, color='blue', alpha=0.7,
+        bars_israelis = plt.bar(df['iterations'] + 0.2, df['israel_ratio'], width=0.4, color='blue', alpha=0.7,
                                 label='Israelis')
 
         plt.axhline(y=self.data.pro_palestine_mean - self.data.pro_palestine_variance, color='green', linestyle='-',
-                    label=f'General Population: mean-variance= {(self.data.pro_palestine_mean - self.data.pro_palestine_variance) * 100:.2}e-2')
+                    label=f'General Population: mean-variance= {((self.data.pro_palestine_mean - self.data.pro_palestine_variance) * 100):.2f}e-2')
         plt.axhline(y=self.data.pro_palestine_mean + self.data.pro_palestine_variance, color='green', linestyle='-',
-                    label=f'General Population: mean+variance= {(self.data.pro_palestine_mean + self.data.pro_palestine_variance) * 100:.2}e-2')
+                    label=f'General Population: mean+variance= {((self.data.pro_palestine_mean + self.data.pro_palestine_variance) * 100):.2f}e-2')
 
         plt.xlabel('Iteration', fontsize=16)
         plt.ylabel('Mean', fontsize=16)
 
         plt.title('Reverts', fontsize=18)
-        plt.xticks(range(0, len(df['Iteration'])))
+        plt.xticks(range(0, len(df['iterations'])))
 
         plt.legend(fontsize=14)
         plt.show()
@@ -114,28 +131,29 @@ class Graphs():
         if not self.ec_reverts:
             print("Unable To Plot EC Reverts Graph - Empty EC Reverts")
             return
-        df = pd.DataFrame(self.ec_reverts)
+        data = self.ec_reverts.to_dict()
+        df = pd.DataFrame.from_dict(data)
 
-        df['Palestinian Ratio'] = df['Palestinians'] / df['Total Users']
-        df['Israeli Ratio'] = df['Israelis'] / df['Total Users']
+        df['palestine_ratio'] = df['pro_palestine'] / df['neutral']
+        df['israel_ratio'] = df['pro_israel'] / df['neutral']
 
         plt.figure(figsize=(12, 7))
 
-        bars_palestinians = plt.bar(df['Iteration'] - 0.2, df['Palestinian Ratio'], width=0.4, color='red', alpha=0.7,
+        bars_palestinians = plt.bar(df['iterations'] - 0.2, df['palestine_ratio'], width=0.4, color='red', alpha=0.7,
                                     label='Palestinians')
-        bars_israelis = plt.bar(df['Iteration'] + 0.2, df['Israeli Ratio'], width=0.4, color='blue', alpha=0.7,
+        bars_israelis = plt.bar(df['iterations'] + 0.2, df['israel_ratio'], width=0.4, color='blue', alpha=0.7,
                                 label='Israelis')
 
         plt.axhline(y=self.data.pro_palestine_mean - self.data.pro_palestine_variance, color='green', linestyle='-',
-                    label=f'General Population: mean-variance= {(self.data.pro_palestine_mean - self.data.pro_palestine_variance) * 100:.2}e-2')
+                    label=f'General Population: mean-variance= {((self.data.pro_palestine_mean - self.data.pro_palestine_variance) * 100):.2f}e-2')
         plt.axhline(y=self.data.pro_palestine_mean + self.data.pro_palestine_variance, color='green', linestyle='-',
-                    label=f'General Population: mean+variance= {(self.data.pro_palestine_mean + self.data.pro_palestine_variance) * 100:.2}e-2')
+                    label=f'General Population: mean+variance= {((self.data.pro_palestine_mean + self.data.pro_palestine_variance) * 100):.2f}e-2')
 
         plt.xlabel('Iteration', fontsize=16)
         plt.ylabel('Mean', fontsize=16)
 
         plt.title('Reverts on EC pages', fontsize=18)
-        plt.xticks(range(0, len(df['Iteration'])))
+        plt.xticks(range(0, len(df['iterations'])))
 
         plt.legend(fontsize=14)
         plt.show()
@@ -144,11 +162,12 @@ class Graphs():
         if not self.data_ec_tag:
             print("Unable To Plot EC Tag Graph - Empty EC Tag")
             return
-        pro_palestine_ratio = [pp / t for pp, t in zip(self.data_ec_tag.pro_palestine, self.data_ec_tag.total)]
-        pro_israel_ratio = [pi / t for pi, t in zip(self.data_ec_tag.pro_israel, self.data_ec_tag.total)]
+        total = [(pp + pi + n) for pp, pi, n in zip(self.data_ec_tag.pro_palestine, self.data_ec_tag.pro_israel, self.data_ec_tag.neutral)]
+        pro_palestine_ratio = [pp / t if t != 0 else 0 for pp, t in zip(self.data_ec_tag.pro_palestine, total)]
+        pro_israel_ratio = [pi / t if t != 0 else 0 for pi, t in zip(self.data_ec_tag.pro_israel, total)]
 
         bar_width = 0.35
-        index = np.arange(len(self.ec_tag.months))
+        index = np.arange(len(self.data_ec_tag.months))
 
         plt.figure(figsize=(10, 6))
         plt.bar(index - bar_width / 2, pro_palestine_ratio, bar_width, color='red', label='Pro-Palestine Ratio')
@@ -181,7 +200,7 @@ class GeneralPopulationGraph:
             self.general_population_graph_15min()
         if(self.graph_general_population_ec_tag):
             self.general_population_graph_ec_tag()
-
+            self.graph_general_population_ec_tag_normalized()
 
 
     def get_hourly_averages(self, data):
@@ -277,6 +296,33 @@ class GeneralPopulationGraph:
         plt.xlabel('Months', fontsize=14)
         plt.ylabel('Percentage of Pro Israel and Pro Palestine users(%)', fontsize=14)
         plt.title('Got EC Within Months From Registration - General Population', fontsize=16)
+
+        plt.xticks(index, self.ec_time_data.months)
+        plt.legend(fontsize=12)
+        plt.tight_layout()
+        plt.show()
+
+    def graph_general_population_ec_tag_normalized(self):
+        tpp = sum(self.ec_time_data.pro_palestine)
+        tpi = sum(self.ec_time_data.pro_israel)
+        tt = sum(self.ec_time_data.neutral)
+
+        pro_palestine_percentage = [pp * 100 / tpp for pp in self.ec_time_data.pro_palestine]
+        pro_israel_percentage = [pi * 100 / tpi for pi in self.ec_time_data.pro_israel]
+        other_users_percentage = [t * 100 / tt for t in self.ec_time_data.neutral]
+
+        # Set the bar width
+        bar_width = 0.25
+        index = np.arange(len(self.ec_time_data.months))
+
+        plt.figure(figsize=(10, 6))
+        plt.bar(index - bar_width, pro_palestine_percentage, bar_width, color='red', label='Pro-Palestine')
+        plt.bar(index, pro_israel_percentage, bar_width, color='blue', label='Pro-Israel')
+        plt.bar(index + bar_width, other_users_percentage, bar_width, color='green', label='Other Users')
+
+        plt.xlabel('Months', fontsize=14)
+        plt.ylabel('Precentage of Users Normalized to each Population', fontsize=14)
+        plt.title('User Distribution EC TAG', fontsize=16)
 
         plt.xticks(index, self.ec_time_data.months)
         plt.legend(fontsize=12)

@@ -1,0 +1,35 @@
+{
+    "contributions": {
+        "time": 2,
+        "pro_palestine": [
+            2,
+            7
+        ],
+        "pro_israel": [
+            0,
+            6
+        ],
+        "neutral": [
+            27,
+            254
+        ]
+    },
+    "ec_reverts": {
+        "time": 3,
+        "pro_palestine": [
+            4,
+            0,
+            4
+        ],
+        "pro_israel": [
+            0,
+            2,
+            0
+        ],
+        "neutral": [
+            32,
+            19,
+            33
+        ]
+    }
+}

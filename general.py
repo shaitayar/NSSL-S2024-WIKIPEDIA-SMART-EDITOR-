@@ -1,4 +1,62 @@
+#****************************************************
+# Purpose:  Contains all the data structures that contains the data
+# Classes:  MeasurementsData:
+#           General_Population: mean, variance and std for the
+#           general_population data, mainly for the graphs
+#           IterationsData: data & iterations
+#           Data: regular data for graphs, i.e: reverts
+#           TimeData: data that contains timestamp, i.e: ec_tag
+#****************************************************
+
 from collections import defaultdict
+class MeasurementsData:
+    def __init__(self):
+        self.contribs_usernames = []
+        self.contribs_total = []
+        self.contribs_percent_protected = []
+
+        self.reverts_usernames = []
+        self.reverts_total = []
+        self.reverts_percent_protected = []
+
+        self.in_list_percent_protected_contribs = []
+        self.not_in_list_percent_protected_contribs = []
+
+        self.in_list_percent_protected_reverts = []
+        self.not_in_list_percent_protected_reverts = []
+
+    def to_dict(self):
+        return {
+            'contribs_usernames': self.contribs_usernames,
+            'contribs_total': self.contribs_total,
+            'contribs_percent_protected': self.contribs_percent_protected,
+
+            'reverts_usernames': self.reverts_usernames,
+            'reverts_total': self.reverts_total,
+            'reverts_percent_protected': self.reverts_percent_protected,
+
+            'in_list_percent_protected_contribs': self.in_list_percent_protected_contribs,
+            'not_in_list_percent_protected_contribs': self.not_in_list_percent_protected_contribs,
+
+            'in_list_percent_protected_reverts': self.in_list_percent_protected_reverts,
+            'not_in_list_percent_protected_reverts': self.not_in_list_percent_protected_reverts
+        }
+
+    def insert(self, raw_data):
+        if raw_data:
+            self.contribs_usernames = raw_data.get('contribs_usernames', [])
+            self.contribs_total = raw_data.get('contribs_total', [])
+            self.contribs_percent_protected = raw_data.get('contribs_percent_protected', [])
+
+            self.reverts_usernames = raw_data.get('reverts_usernames', [])
+            self.reverts_total = raw_data.get('reverts_total', [])
+            self.reverts_percent_protected = raw_data.get('reverts_percent_protected', [])
+
+            self.in_list_percent_protected_contribs = raw_data.get('in_list_percent_protected_contribs', [])
+            self.not_in_list_percent_protected_contribs = raw_data.get('not_in_list_percent_protected_contribs', [])
+
+            self.in_list_percent_protected_reverts = raw_data.get('in_list_percent_protected_reverts', [])
+            self.not_in_list_percent_protected_reverts = raw_data.get('not_in_list_percent_protected_reverts', [])
 
 class General_Population:
     def __init__(self, il_mean, il_variance, il_std,
@@ -24,6 +82,14 @@ class IterationsData:
         self.total_users.append(total_users)
         self.num_of_iterations += 1
 
+    def to_dict(self):
+        return {
+            'time': self.num_of_iterations,
+            'pro_palestine': self.num_palestinians,
+            'pro_israel': self.num_israelis,
+            'neutral': self.total_users
+        }
+
     def print_all(self):
         for i in range(0, self.num_of_iterations):
             print (f"\nIteration: {i} "
@@ -32,27 +98,35 @@ class IterationsData:
                    f"\nTotal Users: {self.total_users[i]}")
 
     def ps_mean(self, iteration):
-        return self.num_palestinians[iteration] / self.total_users[iteration]
+        return (self.num_palestinians[iteration] / self.total_users[iteration]) if self.total_users[iteration] > 0 else 0
 
     def il_mean(self, iteration):
-        return self.num_israelis[iteration] / self.total_users[iteration]
+        return (self.num_israelis[iteration] / self.total_users[iteration]) if self.total_users[iteration] > 0 else 0
 
 class Data:
     def __init__(self):
         self.iterations = []
         self.pro_palestine = []
         self.pro_israel = []
-        self.total_users = []
+        self.neutral = []
 
     def __bool__(self):
-        return bool(self.iterations or self.pro_palestine or self.pro_israel or self.total_users)
+        return bool(self.iterations or self.pro_palestine or self.pro_israel or self.neutral)
 
     def insert(self, raw_data):
-        self.iterations = raw_data['iterations']
-        self.pro_palestine = raw_data['pro_palestine']
-        self.pro_israel = raw_data['pro_israel']
-        self.total_users = raw_data['total_users']
+        for i in range (raw_data.get('time', [])):
+            self.iterations.append(i)
+        self.pro_palestine = raw_data.get('pro_palestine', [])
+        self.pro_israel = raw_data.get('pro_israel', [])
+        self.neutral = raw_data.get('neutral', [])
 
+    def to_dict(self):
+        return {
+            'iterations': self.iterations,
+            'pro_palestine': self.pro_palestine,
+            'pro_israel': self.pro_israel,
+            'neutral': self.neutral
+        }
 
 class TimeData:
     def __init__(self):
@@ -67,13 +141,14 @@ class TimeData:
 
     def insert(self, raw_data):
         if raw_data:
-            self.time = raw_data['time']
-            self.pro_palestine = raw_data['pro_palestine']
-            self.pro_israel = raw_data['pro_israel']
-            self.neutral = raw_data['neutral']
+            self.time = raw_data.get('time', [])
+            self.pro_palestine = raw_data.get('pro_palestine', [])
+            self.pro_israel = raw_data.get('pro_israel', [])
+            self.neutral = raw_data.get('neutral', [])
 
     def to_dict(self):
         return {
+            'months': self.months,
             'time': self.time,
             'pro_palestine': self.pro_palestine,
             'pro_israel': self.pro_israel,

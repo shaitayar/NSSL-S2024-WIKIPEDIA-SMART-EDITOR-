@@ -1,5 +1,8 @@
-import amoeba
-import general
+#****************************************************
+# Purpose:  Read the grade from configuration,
+#           calculate and insert to NEO4J
+# Classes:  Grades
+#****************************************************
 import pandas as pd
 from datetime import datetime
 
@@ -7,9 +10,9 @@ from datetime import datetime
 class Grades:
     def __init__(self, driver, grades, prune):
         self.driver = driver
-        self.grade1 = grades[1]
-        self.grade2 = grades[2]
-        self.grade3 = grades[3]
+        self.grade1 = grades[0]
+        self.grade2 = grades[1]
+        self.grade3 = grades[2]
         self.prune = prune
 
     def calculate_months_difference(self, start_date, end_date):
@@ -68,7 +71,7 @@ class Grades:
 
     def insert_grade(self, users_data):
         with self.driver.session() as session:
-            for user in users_data:
+            for index, user in users_data.iterrows():
                 session.run(
                     """
                     MERGE (u:User {username: $username})
@@ -79,5 +82,8 @@ class Grades:
 
     def routine(self, contrib_iteration, revert_iteration):
         users_data = self.get_users(contrib_iteration, revert_iteration)
-        users_data['grade'] = users_data.apply(lambda row: self.assignGrade(row), axis='columns')
-        self.insert_grade(users_data)
+        if users_data.empty:
+            print("The DataFrame is empty!")
+        else:
+            users_data['grade'] = users_data.apply(lambda row: self.assignGrade(row), axis='columns')
+            self.insert_grade(users_data)

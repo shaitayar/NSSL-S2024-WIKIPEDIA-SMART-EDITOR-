@@ -1,8 +1,14 @@
-import matplotlib
+#****************************************************
+# Purpose:  Draw the graphs for measuring 1 iteration:
+#           ECDF and Scatter.
+# Classes:  DescryptiveAnalytics
+#****************************************************
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 from enum import Enum
+import general
+import export
 
 class Type(Enum):
     CONTRIBS = 1
@@ -13,6 +19,7 @@ class DescryptiveAnalytics:
         self.types = Type.CONTRIBS
         self.driver = driver
         self.users = users
+        self.data = general.MeasurementsData()
 
     def fetch_data(self, tx):
         params = {}
@@ -50,6 +57,15 @@ class DescryptiveAnalytics:
         plt.figure(figsize=(10, 6))
         plt.scatter(percent_protected, total, alpha=0.5)
 
+        if self.types == Type.CONTRIBS:
+            self.data.contribs_usernames = usernames
+            self.data.contribs_total = total
+            self.data.contribs_percent_protected = percent_protected
+
+        elif self.types == Type.REVERTS:
+            self.data.reverts_usernames = usernames
+            self.data.reverts_total = total
+            self.data.reverts_percent_protected = percent_protected
 
         for i, username in enumerate(usernames):
             if username in users:
@@ -89,6 +105,15 @@ class DescryptiveAnalytics:
         in_list_percent_protected_contribs = np.array(in_list_percent_protected)
         not_in_list_percent_protected_contribs = np.array(not_in_list_percent_protected)
 
+        if self.types == Type.CONTRIBS:
+            self.data.in_list_percent_protected_contribs = list(in_list_percent_protected_contribs)
+            self.data.not_in_list_percent_protected_contribs = list(not_in_list_percent_protected_contribs)
+
+        elif self.types == Type.REVERTS:
+            self.data.in_list_percent_protected_reverts = list(in_list_percent_protected_contribs)
+            self.data.not_in_list_percent_protected_reverts = list(not_in_list_percent_protected_contribs)
+
+
         sns.ecdfplot(data=in_list_percent_protected_contribs, color='red', label='In List')
         sns.ecdfplot(data=not_in_list_percent_protected_contribs, color='blue', label='Not in List')
 
@@ -113,3 +138,76 @@ class DescryptiveAnalytics:
         self.create_scatter(set(user['user'] for user in self.users))
         self.ecdf(self.users)
 
+        #export data for further use
+        ex = export.Export("measurements\\analytics")
+        ex.export_to_json(self.data.to_dict(), "measurements")
+
+
+    def draw_graphs(self):
+        im = export.Import("measurements\\analytics")
+        im.import_from_json()
+
+        self.data.insert(im.data.get('measurements', []))
+
+
+        self.draw_scatter()
+        self.draw_ecdf()
+
+        self.types = Type.REVERTS
+
+        self.draw_scatter()
+        self.draw_ecdf()
+
+
+    def draw_ecdf(self):
+        if self.types == Type.CONTRIBS:
+            in_list_percent_protected_contribs = np.array(self.data.in_list_percent_protected_contribs)
+            not_in_list_percent_protected_contribs = np.array(self.data.not_in_list_percent_protected_contribs)
+        elif self.types == Type.REVERTS:
+            in_list_percent_protected_contribs = np.array(self.data.in_list_percent_protected_reverts)
+            not_in_list_percent_protected_contribs = np.array(self.data.not_in_list_percent_protected_reverts)
+
+        sns.ecdfplot(data=in_list_percent_protected_contribs, color='red', label='In List')
+        sns.ecdfplot(data=not_in_list_percent_protected_contribs, color='blue', label='Not in List')
+
+        plt.xlabel('')
+        plt.ylabel('ECDF')
+
+        if self.types == Type.CONTRIBS:
+            plt.title('ECDF for % EC Contributions')
+        elif self.types == Type.REVERTS:
+            plt.title('ECDF for % EC Reverts')
+
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
+    def draw_scatter(self):
+        if self.types == Type.CONTRIBS:
+            usernames = self.data.contribs_usernames
+            total = self.data.contribs_total
+            percent_protected = self.data.contribs_percent_protected
+
+        elif self.types == Type.REVERTS:
+            usernames = self.data.reverts_usernames
+            total = self.data.reverts_total
+            percent_protected = self.data.reverts_percent_protected
+
+        plt.figure(figsize=(10, 6))
+        plt.scatter(percent_protected, total, alpha=0.5)
+
+        for i, username in enumerate(usernames):
+            if username in set(user['user'] for user in self.users):
+                plt.scatter(percent_protected[i], total[i], color='red', label=f'Highlighted: {username}')
+
+        if self.types == Type.CONTRIBS:
+            plt.title('User Contributions to EC Pages')
+            plt.xlabel('% of Contributions to EC Pages')
+            plt.ylabel('Total Contributions')
+        elif self.types == Type.REVERTS:
+            plt.title('User Reverts to EC Pages')
+            plt.xlabel('% of Reverts to EC Pages')
+            plt.ylabel('Total Reverts')
+
+        plt.grid(True)
+        plt.show()

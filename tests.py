@@ -1,4 +1,3 @@
-import os
 import unittest
 import general_population
 import classify
@@ -9,7 +8,9 @@ import measurements
 from neo4j import GraphDatabase
 import general
 import graphs
-
+import contributions
+import reverts
+import amoeba
 
 def connect_to_neo4j(uri, username, password):
     return GraphDatabase.driver(uri, auth=(username, password))
@@ -21,26 +22,26 @@ class TestGeneralStuff(unittest.TestCase):
 
     # test if can read from a file
     def test_read_import_file(self):
-        ex = export.Export(self.filename)
+        ex = export.Export("test", self.filename)
         ex.export_to_json("world!", "hello")
 
-        im = export.Import(self.filename)
+        im = export.Import("test", self.filename)
         im.import_from_json()
         data = im.data.get("hello", [])
         self.assertEqual(data, "world!")
 
     def test_export_multiple_times(self):
-        ex1 = export.Export()
+        ex1 = export.Export("test")
         ex1.export_to_json("world!", "Hello")
 
-        ex2 = export.Export()
+        ex2 = export.Export("test")
         ex2.export_to_json("olam!", "Shalom")
 
-        ex3 = export.Export()
+        ex3 = export.Export("test")
         ex3.export_to_json("mundo!", "Hola")
 
 
-        im = export.Import("")
+        im = export.Import("test")
         im.import_from_json()
         data = im.data.get("Hello", [])
         self.assertEqual(data, "world!")
@@ -60,9 +61,39 @@ class TestMeasurements(unittest.TestCase):
         config_neo = config['neo4j']['measurements']
         self.kernel_users = config['kernel']['users']
         self.driver = connect_to_neo4j(config_neo['uri'], config_neo['username'], config_neo['password'])
+        self.kernel_pages = config['kernel']['pages']
+        self.months_start = config['duration']['months_start']
+        self.months_end = config['duration']['months_end']
+        self.days = config['duration']['days_for_recent_changes']
+        self.project_palestine_users = config['wikiProject']['palestine']
+        self.project_israel_users = config['wikiProject']['israel']
+        self.palestine_userbox = config['userboxes']['pro_palestine']
+        self.israel_userbox = config['userboxes']['pro_israel']
 
+        self.classify = classify.Classify(self.driver, self.project_palestine_users, self.project_israel_users, self.palestine_userbox, self.israel_userbox)
+
+        self.contribution = contributions.Contributions(self.driver, 1, self.kernel_users, self.kernel_pages, self.months_start, self.months_end, self.classify)
+        self.revert = reverts.RevertsEC(self.driver, 2, self.kernel_users, self.kernel_pages, self.months_start, self.months_end, self.classify)
         self.measurement = measurements.DescryptiveAnalytics(self.driver, self.kernel_users)
+        self.amoeba = amoeba.Amoeba(self.driver)
 
+    def tests_routine(self):
+        # 1 expansion then measurements
+        self.contribution.routine_all()
+        self.revert.routine_all()
+        self.measurement.routine()
+
+
+        ex = export.Export('measurements')
+        ex.export_to_json(self.contribution.iterations_data.to_dict(), "contributions")
+        ex.export_to_json(self.revert.iterations_data.to_dict(), "ec_reverts")
+
+        #export data to Amoeba in Matlab
+        self.amoeba.export_users_to_amoeba()
+
+    def test_draw_graphs(self):
+        #self.measurement.routine()
+        self.measurement.draw_graphs()
 
 
 # test if general population stats are correct
@@ -82,7 +113,7 @@ class TestGeneralPopulation(unittest.TestCase):
         self.israel_userbox = config['userboxes']['pro_israel']
         self.filename = config['graph_input_filename']
         self.classify = classify.Classify(self.driver, self.project_palestine_users, self.project_israel_users, self.palestine_userbox, self.israel_userbox)
-        self.general_population = general_population.GeneralPopulation(self.driver, self.kernel_users, self.kernel_pages, self.months_start, self.days, self.classify)
+        self.general_population = general_population.GeneralPopulation(self.driver, self.months_start, self.days, self.classify)
 
     # test import and export
     def test_export_import_data(self):
@@ -91,10 +122,10 @@ class TestGeneralPopulation(unittest.TestCase):
 
         self.general_population.general_population_graph_data()
         self.general_population.general_population_ec_tag()
-        ex = export.Export()
+        ex = export.Export("general_population")
         ex.export_to_json(self.general_population.time_data.to_dict(), "general_population_total")
         ex.export_to_json(self.general_population.ec_time_data.to_dict(), "general_population_ec_tag")
-        im = export.Import(self.filename)
+        im = export.Import("general_population", self.filename)
         im.import_from_json()
 
         general_population_total.insert(im.data.get('general_population_total', []))
@@ -111,16 +142,10 @@ class TestGeneralPopulation(unittest.TestCase):
         self.assertEqual(general_population_ec_tag.neutral, self.general_population.ec_time_data.neutral)
 
         self.driver.close()
+
     #test routine
     def test_routine(self):
-        pass
         self.general_population.routine()
-
-    #test routine if neo4j is down
-    def test_routine_no_neo4j(self):
-        pass
-        self.general_population.routine()
-
 
 
 # test if expansions data is correct
@@ -150,13 +175,18 @@ class TestExpansions(unittest.TestCase):
         self.prune = config['Amoeba_Results']['prune']
     def test_no_grades(self):
         classify_ = classify.Classify(self.driver, self.project_palestine_users, self.project_israel_users, self.palestine_userbox, self.israel_userbox)
-        expansion_ = expansion.Expansion(self.driver, self.max_iterations_contribs, self.max_iterations_reverts, self.kernel_users, self.kernel_pages, self.months_start, self.months_end, classify_, self.grades, self.prune, False)
+        expansion_ = expansion.Expansion(self.driver, self.max_iterations_contribs, self.max_iterations_reverts, self.kernel_users, self.kernel_pages, self.months_start, self.months_end, classify_, self.prune, self.grades, False)
         expansion_.routine()
 
     def test_grades(self):
         classify_ = classify.Classify(self.driver, self.project_palestine_users, self.project_israel_users, self.palestine_userbox, self.israel_userbox)
-        expansion_ = expansion.Expansion(self.driver, self.max_iterations_contribs, self.max_iterations_reverts, self.kernel_users, self.kernel_pages, self.months_start, self.months_end, classify_, self.grades, self.prune, True)
+        expansion_ = expansion.Expansion(self.driver, self.max_iterations_contribs, self.max_iterations_reverts, self.kernel_users, self.kernel_pages, self.months_start, self.months_end, classify_, self.prune, self.grades, True)
         expansion_.routine()
+
+    def test_final_userlist_graded(self):
+        classify_ = classify.Classify(self.driver, self.project_palestine_users, self.project_israel_users, self.palestine_userbox, self.israel_userbox)
+        expansion_ = expansion.Expansion(self.driver, self.max_iterations_contribs, self.max_iterations_reverts, self.kernel_users, self.kernel_pages, self.months_start, self.months_end, classify_, self.prune, self.grades, True)
+        expansion_.export_final_users_to_csv()
 
 # test graphs class
 class TestGraphs(unittest.TestCase):
@@ -177,7 +207,7 @@ class TestGraphs(unittest.TestCase):
             general_population_total = general.TimeData()
             general_population_ec_tag = general.TimeData()
 
-            im = export.Import(self.filename)
+            im = export.Import("general_population", self.filename)
             im.import_from_json()
             if self.graph_general_population_hour or self.graph_general_population_15min:
                 try: general_population_total.insert(im.data.get('general_population_total', []))
@@ -198,25 +228,26 @@ class TestGraphs(unittest.TestCase):
             ec_reverts_data = general.Data()
             ec_tag_data = general.TimeData()
             general_population_total = general.TimeData()
-
-            im = export.Import(self.filename)
+            im = export.Import("expansion_no_grades", self.filename)
             im.import_from_json()
             if self.graph_contributions:
-                try: contributions_data.insert(im.data['contributions'])
+                try: contributions_data.insert(im.data.get('contributions', []))
                 except: print(f"no Contributions Data in {im.filepath}")
             if self.graph_reverts:
-                try: reverts_data.insert(im.data['reverts'])
+                try: reverts_data.insert(im.data.get('reverts', []))
                 except: print(f"no Reverts Data in {im.filepath}")
 
             if self.graph_ec_reverts:
-                try: ec_reverts_data.insert(im.data['ec_reverts'])
+                try: ec_reverts_data.insert(im.data.get('ec_reverts', []))
                 except: print(f"no EC Reverts Data in {im.filepath}")
 
             if self.graph_ec_tag:
-                try: ec_tag_data.insert(im.data['ec_tag'])
+                try: ec_tag_data.insert(im.data.get('ec_tag', []))
                 except: print(f"no EC Tag Data in {im.filepath}")
 
-            general_population_total.insert(im.data['general_population_total'])
+            im_general = export.Import("general_population")
+            im_general.import_from_json()
+            general_population_total.insert(im_general.data.get('general_population_total', []))
             graph = graphs.Graphs(self.graph_contributions, self.graph_reverts, self.graph_ec_reverts, self.graph_ec_tag,
                                   contributions_data, reverts_data, ec_reverts_data, ec_tag_data,
                                   general_population_total)
@@ -225,7 +256,7 @@ class TestGraphs(unittest.TestCase):
     #test what happens if the user tries to plot a graph without data in the json file
     def test_graph_no_data(self):
         reverts_data = general.Data()
-        im = export.Import(self.filename)
+        im = export.Import('expansion_no_grades', self.filename)
         im.import_from_json()
         if self.graph_reverts:
             try:

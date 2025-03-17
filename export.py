@@ -1,3 +1,9 @@
+#****************************************************
+# Purpose:  Export data from the data structures to json files,
+#           and import data from the json files to the project's DS.
+# Classes:  Export
+#           Import
+#****************************************************
 import json
 import os
 from datetime import datetime
@@ -5,9 +11,10 @@ import glob
 
 
 class Export:
-    def __init__(self, filename=""):
+    def __init__(self, folder_name, filename=""):
         self.filename = filename if filename != "" else f"export_{datetime.now().strftime('%Y%m%d_%H%M')}.json"
-        self.folder = "exports"
+        self.sub_folder = folder_name
+        self.folder = os.path.join("exports", self.sub_folder)
 
         os.makedirs(self.folder, exist_ok=True)
 
@@ -34,20 +41,21 @@ class Export:
 
 
 class Import:
-    def __init__(self, filename):
+    def __init__(self, folder_name, filename=""):
         self.filename = filename
         self.data = []
         self.filepath = ""
+        self.folder = os.path.join("exports", folder_name)
 
     def get_latest_json(self):
-        json_files = glob.glob(os.path.join("exports", "export_*.json"))
+        json_files = glob.glob(os.path.join(self.folder, "export_*.json"))
         if not json_files:
             return None
         return max(json_files, key=os.path.getctime)
 
     def import_from_json(self):
         if(self.filename != ""):
-            self.filepath = os.path.join("exports", self.filename)
+            self.filepath = os.path.join(self.folder, self.filename)
         else:
             self.filepath = self.get_latest_json()
 

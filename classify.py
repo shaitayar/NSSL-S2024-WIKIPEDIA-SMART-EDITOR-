@@ -1,4 +1,19 @@
+#****************************************************
+# Purpose:  classify raw data into groups:
+#           pro_palestine, pro_israel and neutral
+# Classes:  Classify
+#****************************************************
+
 class Classify:
+    """
+    Inputs:   driver: the driver to connect neo4j
+              project_palestine_users: contributors in the project will be classified as pro_palestine
+              project_israel_users: same, but classified as pro_israel
+              palestine_userbox: users that have userbox from that list will be classified as pro_palestine
+              israel_userbox: same, but classified as pro_israel
+    Comment:  Should call the relevant function
+    """
+
     def __init__(self, driver, project_palestine_users, project_israel_users, palestine_userbox, israel_userbox):
         self.driver = driver
         self.project_palestine_users = project_palestine_users
