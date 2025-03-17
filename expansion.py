@@ -1,3 +1,11 @@
+#****************************************************
+# Purpose:  Combines all the expansion methods.
+#           starts from kernel users and pages, expand to new
+#           users using the features: contributions, reverts, etc.
+#           can expand with / without grades
+# Classes:  Expansion
+#****************************************************
+
 import contributions
 import reverts
 import ec_tag

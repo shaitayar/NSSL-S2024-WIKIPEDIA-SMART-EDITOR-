@@ -1,3 +1,9 @@
+#****************************************************
+# Purpose:  Export data from the data structures to json files,
+#           and import data from the json files to the project's DS.
+# Classes:  Export
+#           Import
+#****************************************************
 import json
 import os
 from datetime import datetime

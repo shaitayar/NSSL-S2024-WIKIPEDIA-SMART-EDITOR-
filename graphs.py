@@ -1,3 +1,9 @@
+#****************************************************
+# Purpose:  Draw the graphs for the project
+# Classes:  Graphs
+#           GeneralPopulationGraph
+#****************************************************
+
 import pandas as pd
 import numpy as np
 import matplotlib

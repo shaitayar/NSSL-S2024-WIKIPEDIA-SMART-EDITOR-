@@ -15,8 +15,8 @@
       "ec_tag": true
     },
     "duration": {
-        "months_start": 6,
-        "months_end": 6.4,
+        "months_start": 8,
+        "months_end": 8.4,
         "days_for_recent_changes": 4
     },
     "graph_input_filename":"",

@@ -11,9 +11,9 @@ class Amoeba:
     """
     Purpose:  Extract data to file, used for amoeba Matlab script
     Inputs:   driver: relevant driver
-    Returns:  .csv file
+    Exports:  .csv file
     """
-    def __init__(self, driver, output_file= "exports\\users_to_amoeba"):
+    def __init__(self, driver, output_file= "exports\\amoeba\\users_to_amoeba"):
         self.driver = driver
         self.output_file = output_file + ".csv"
 

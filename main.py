@@ -69,6 +69,8 @@ if __name__ == '__main__':
         config_neo = config['neo4j']['measurements']
         driver = connect_to_neo4j(config_neo['uri'], config_neo['username'], config_neo['password'])
         # 1 expansion then measurements
+        classify = classify.Classify(driver, project_palestine_users, project_israel_users, palestine_userbox, israel_userbox)
+
         contribution = contributions.Contributions(driver, 1, kernel_users, kernel_pages, months_start, months_end, classify)
         revert = reverts.RevertsEC(driver, 2, kernel_users, kernel_pages, months_start, months_end, classify)
         measurement = measurements.DescryptiveAnalytics(driver, kernel_users)

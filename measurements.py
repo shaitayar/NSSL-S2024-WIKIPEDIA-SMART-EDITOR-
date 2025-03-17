@@ -1,4 +1,8 @@
-import matplotlib
+#****************************************************
+# Purpose:  Draw the graphs for measuring 1 iteration:
+#           ECDF and Scatter.
+# Classes:  DescryptiveAnalytics
+#****************************************************
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np

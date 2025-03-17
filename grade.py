@@ -1,5 +1,8 @@
-import amoeba
-import general
+#****************************************************
+# Purpose:  Read the grade from configuration,
+#           calculate and insert to NEO4J
+# Classes:  Grades
+#****************************************************
 import pandas as pd
 from datetime import datetime
 

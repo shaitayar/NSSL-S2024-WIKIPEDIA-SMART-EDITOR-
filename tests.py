@@ -8,7 +8,9 @@ import measurements
 from neo4j import GraphDatabase
 import general
 import graphs
-
+import contributions
+import reverts
+import amoeba
 
 def connect_to_neo4j(uri, username, password):
     return GraphDatabase.driver(uri, auth=(username, password))
@@ -59,10 +61,35 @@ class TestMeasurements(unittest.TestCase):
         config_neo = config['neo4j']['measurements']
         self.kernel_users = config['kernel']['users']
         self.driver = connect_to_neo4j(config_neo['uri'], config_neo['username'], config_neo['password'])
+        self.kernel_pages = config['kernel']['pages']
+        self.months_start = config['duration']['months_start']
+        self.months_end = config['duration']['months_end']
+        self.days = config['duration']['days_for_recent_changes']
+        self.project_palestine_users = config['wikiProject']['palestine']
+        self.project_israel_users = config['wikiProject']['israel']
+        self.palestine_userbox = config['userboxes']['pro_palestine']
+        self.israel_userbox = config['userboxes']['pro_israel']
 
+        self.classify = classify.Classify(self.driver, self.project_palestine_users, self.project_israel_users, self.palestine_userbox, self.israel_userbox)
+
+        self.contribution = contributions.Contributions(self.driver, 1, self.kernel_users, self.kernel_pages, self.months_start, self.months_end, self.classify)
+        self.revert = reverts.RevertsEC(self.driver, 2, self.kernel_users, self.kernel_pages, self.months_start, self.months_end, self.classify)
         self.measurement = measurements.DescryptiveAnalytics(self.driver, self.kernel_users)
+        self.amoeba = amoeba.Amoeba(self.driver)
+
+    def tests_routine(self):
+        # 1 expansion then measurements
+        self.contribution.routine_all()
+        self.revert.routine_all()
+        self.measurement.routine()
 
 
+        ex = export.Export('measurements')
+        ex.export_to_json(self.contribution.iterations_data.to_dict(), "contributions")
+        ex.export_to_json(self.revert.iterations_data.to_dict(), "ec_reverts")
+
+        #export data to Amoeba in Matlab
+        self.amoeba.export_users_to_amoeba()
 
 # test if general population stats are correct
 class TestGeneralPopulation(unittest.TestCase):
