@@ -11,12 +11,8 @@ import amoeba
 import json
 from neo4j import GraphDatabase
 import ec_tag
-import subprocess
-import sys
 
 
-def install(package):
-    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
 def connect_to_neo4j(uri, username, password):
     return GraphDatabase.driver(uri, auth=(username, password))
@@ -36,10 +32,10 @@ if __name__ == '__main__':
     max_iterations_reverts = config['max_iterations']['reverts']
     days = config['duration']['days_for_recent_changes']
 
-    is_measurement = config['operation']
-    is_general_population = config['is_general_population']
-    is_expansions = config['is_expansions']
-    is_graphs = config['is_graphs']
+    is_measurement = config['operation']['is_measurement']
+    is_general_population = config['operation']['is_general_population']
+    is_expansions = config['operation']['is_expansions']
+    is_graphs = config['operation']['is_graphs']
 
     graph_general_population_hour = config['graphs']['general_population_hour']
     graph_general_population_15min = config['graphs']['general_population_15min']
@@ -53,9 +49,6 @@ if __name__ == '__main__':
     project_israel_users = config['wikiProject']['israel']
     palestine_userbox = config['userboxes']['pro_palestine']
     israel_userbox = config['userboxes']['pro_israel']
-
-    general_population_data = config['data']['is_from_db']
-    expanding_data = config['data']['is_from_json']
 
     filename = config['graph_input_filename']
 
@@ -74,11 +67,15 @@ if __name__ == '__main__':
         contribution = contributions.Contributions(driver, 1, kernel_users, kernel_pages, months_start, months_end, classify)
         revert = reverts.RevertsEC(driver, 2, kernel_users, kernel_pages, months_start, months_end, classify)
         measurement = measurements.DescryptiveAnalytics(driver, kernel_users)
-        measurement.routine()
+
+        contribution.routine_all()
+        revert.routine_all()
 
         ex = export.Export('measurements')
         ex.export_to_json(contribution.iterations_data.to_dict(), "contributions")
         ex.export_to_json(revert.iterations_data.to_dict(), "ec_reverts")
+
+        measurement.routine()
 
         #export data to Amoeba in Matlab
         am = amoeba.Amoeba(driver)
@@ -97,18 +94,17 @@ if __name__ == '__main__':
         ex.export_to_json(general_population.ec_time_data.to_dict(), "general_population_ec_tag")
         driver.close()
 
-    if (expansion):
+    if (is_expansions):
         config_neo = config['neo4j']['expansions']
         driver = connect_to_neo4j(config_neo['uri'], config_neo['username'], config_neo['password'])
         classify = classify.Classify(driver, project_palestine_users, project_israel_users, palestine_userbox, israel_userbox)
         expansion = expansion.Expansion(driver, max_iterations_contribs, max_iterations_reverts, kernel_users, kernel_pages, months_start, months_end, classify, prune, grades, is_expansions_with_grades)
         expansion.routine()
+        expansion.export_final_users_to_csv()
 
         driver.close()
 
-
     if (is_graphs):
-
         if(graph_general_population_hour or graph_general_population_15min or graph_general_population_ec_tag):
             general_population_total = general.TimeData()
             general_population_ec_tag = general.TimeData()
@@ -118,6 +114,7 @@ if __name__ == '__main__':
             if graph_general_population_hour or graph_general_population_15min:
                 try: general_population_total.insert(im.data.get('general_population_total', []))
                 except: print(f"no General Population Data in {im.filepath}")
+
             if(graph_general_population_ec_tag):
                 try: general_population_ec_tag.insert(im.data.get('general_population_ec_tag', []))
                 except: print(f"no General Population EC Tag Data in {im.filepath}")
@@ -134,7 +131,7 @@ if __name__ == '__main__':
             ec_tag_data = general.TimeData()
             general_population_total = general.TimeData()
 
-            im = export.Import(filename)
+            im = export.Import("expansion_no_grades", filename)
             im.import_from_json()
             if graph_contributions:
                 try: contributions_data.insert(im.data.get('contributions', []))
@@ -151,18 +148,15 @@ if __name__ == '__main__':
                 try: ec_tag_data.insert(im.data.get('ec_tag', []))
                 except: print(f"no EC Tag Data in {im.filepath}")
 
-            general_population_total.insert(im.data.get('general_population_total', []))
+            im_general = export.Import("general_population")
+            im_general.import_from_json()
+
+            general_population_total.insert(im_general.data.get('general_population_total', []))
 
             graph = graphs.Graphs(graph_contributions, graph_reverts, graph_ec_reverts, graph_ec_tag,
                                   contributions_data, reverts_data, ec_reverts_data, ec_tag_data, general_population_total)
             graph.routine()
 
-
-    if(export_to_amoeba):
-        config_neo = config['neo4j']['expansions']
-        driver = connect_to_neo4j(config_neo['uri'], config_neo['username'], config_neo['password'])
-        amoeba = amoeba.Amoeba(driver)
-        amoeba.export_users_to_amoeba()
 
 
 
